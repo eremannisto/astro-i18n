@@ -1,0 +1,88 @@
+{
+  "name": "@mannisto/astro-i18n",
+  "version": "1.0.0-alpha.1",
+  "description": "A flexible alternative to Astro's built-in i18n, with locale routing, detection, and translations for static and SSR sites.",
+  "license": "MIT",
+  "type": "module",
+  "homepage": "https://github.com/eremannisto/astro-i18n#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eremannisto/astro-i18n"
+  },
+  "bugs": {
+    "url": "https://github.com/eremannisto/astro-i18n/issues"
+  },
+  "keywords": [
+    "astro",
+    "astro-integration",
+    "i18n",
+    "internationalisation",
+    "routing",
+    "translations"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./runtime": {
+      "types": "./dist/runtime.d.ts",
+      "default": "./dist/runtime.js"
+    },
+    "./middleware": {
+      "types": "./dist/middleware.d.ts",
+      "default": "./dist/middleware.js"
+    },
+    "./detect/server": {
+      "types": "./dist/detect/server.d.ts",
+      "default": "./dist/detect/server.js"
+    },
+    "./detect/client": {
+      "types": "./dist/detect/client.d.ts",
+      "default": "./dist/detect/client.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "runtime": [
+        "./dist/runtime.d.ts"
+      ],
+      "middleware": [
+        "./dist/middleware.d.ts"
+      ],
+      "detect/server": [
+        "./dist/detect/server.d.ts"
+      ],
+      "detect/client": [
+        "./dist/detect/client.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "prepublishOnly": "pnpm build",
+    "format": "prettier --write .",
+    "lint": "biome lint",
+    "check": "biome check",
+    "test:unit": "vitest run",
+    "test:e2e": "pnpm build > /dev/null 2>&1 && playwright test",
+    "test": "pnpm run test:unit && pnpm run test:e2e"
+  },
+  "peerDependencies": {
+    "astro": "^5.0.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.0.0",
+    "@playwright/test": "^1.50.0",
+    "@types/node": "^22.0.0",
+    "astro": "^5.17.3",
+    "prettier": "^3.8.1",
+    "prettier-plugin-astro": "^0.14.1",
+    "tsup": "^8.5.1",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}

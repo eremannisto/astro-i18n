@@ -1,0 +1,6 @@
+onlyBuiltDependencies:
+  - esbuild
+  - sharp
+packages:
+  - "."
+  - "tests/e2e/fixtures/*"
