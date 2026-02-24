@@ -1,0 +1,150 @@
+import { defineMiddleware } from "astro/middleware"
+import { config, translations } from "virtual:astro-i18n/config"
+import type { LocaleCode, LocaleConfig } from "../types"
+
+const NAME = "@mannisto/astro-i18n"
+
+/**
+ * Primary public API for locale access, translations, and middleware.
+ *
+ * Always import from the runtime subpath in pages and components:
+ * @example
+ * import { Locale } from "@mannisto/astro-i18n/runtime"
+ */
+export const Locale = {
+  // ==========================================================================
+  // Locale access
+  // ==========================================================================
+
+  /**
+   * All supported locale codes.
+   * @example ["en", "fi"]
+   */
+  get supported(): LocaleCode[] {
+    return config.locales.map((l: LocaleConfig) => l.code)
+  },
+
+  /**
+   * The fallback locale code.
+   * @example "en"
+   */
+  get fallback(): LocaleCode {
+    return config.routing.fallback
+  },
+
+  /**
+   * Returns the current locale from Astro.params.
+   * @example
+   * const locale = Locale.current(Astro.params.locale)
+   */
+  current(locale: string): LocaleCode {
+    return locale
+  },
+
+  /**
+   * Returns the config for all locales, or a single locale by code.
+   * Throws if the requested code is not found.
+   *
+   * @example
+   * Locale.get()       // all locales
+   * Locale.get("fi")   // single locale
+   */
+  get(code?: LocaleCode): LocaleConfig | LocaleConfig[] {
+    if (code) {
+      const found = config.locales.find((l: LocaleConfig) => l.code === code)
+      if (!found) {
+        throw new Error(`${NAME} Locale "${code}" not found.`)
+      }
+      return found
+    }
+    return config.locales
+  },
+
+  // ==========================================================================
+  // Translations
+  // ==========================================================================
+
+  /**
+   * Returns translations for a locale.
+   *
+   * Without a key, returns the full translation object for that locale.
+   * With a key, returns the translated string for that key.
+   *
+   * Warns if translations are not configured.
+   * Throws if the locale or key is not found.
+   *
+   * @example
+   * Locale.t(locale)              // { "nav.home": "Home", ... }
+   * Locale.t(locale, "nav.home")  // "Home"
+   */
+  t(locale: LocaleCode, key?: string): string | Record<string, string> {
+    // warn if translations were not configured
+    if (!config.translations) {
+      console.warn(
+        `${NAME} Locale.t() was called but translations are not configured. ` +
+          `Add a translations path to your i18n config to enable translations.`
+      )
+      return key ? "" : {}
+    }
+
+    if (key) {
+      const record = translations[locale]
+      if (!record) {
+        throw new Error(`${NAME} No translations found for locale "${locale}".`)
+      }
+      if (!(key in record)) {
+        throw new Error(`${NAME} Missing translation key "${key}" in ${locale}.json`)
+      }
+      return record[key]
+    }
+    return translations[locale] ?? {}
+  },
+
+  // ==========================================================================
+  // Middleware
+  // ==========================================================================
+
+  /**
+   * Middleware that redirects requests without a locale prefix to the
+   * correct locale based on the user's cookie.
+   *
+   * Auto-registered when detection is "server" and autoPrefix is enabled.
+   * Can also be used manually via Astro's sequence() helper.
+   *
+   * @example
+   * import { sequence } from "astro/middleware"
+   * import { Locale } from "@mannisto/astro-i18n/runtime"
+   * export const onRequest = sequence(Locale.middleware, myMiddleware)
+   */
+  middleware: defineMiddleware(({ url, cookies, redirect }, next) => {
+    const pathname = url.pathname
+
+    const ignoreList =
+      config.routing.autoPrefix !== false ? (config.routing.autoPrefix.ignore ?? []) : []
+
+    // pass through ignored paths (e.g. /_astro, /keystatic)
+    if (ignoreList.some((path: string) => pathname.startsWith(path))) {
+      return next()
+    }
+
+    // pass through root — handled by the detection route
+    if (pathname === "/") {
+      return next()
+    }
+
+    // pass through paths that already have a locale prefix
+    const firstSegment = pathname.split("/")[1]
+    if (config.locales.map((l: LocaleConfig) => l.code).includes(firstSegment)) {
+      return next()
+    }
+
+    // redirect to the locale stored in the cookie, or the fallback
+    const stored = cookies.get("locale")?.value
+    const targetLocale =
+      stored && config.locales.map((l: LocaleConfig) => l.code).includes(stored)
+        ? stored
+        : config.routing.fallback
+
+    return redirect(`/${targetLocale}${pathname}`, 302)
+  }),
+}
