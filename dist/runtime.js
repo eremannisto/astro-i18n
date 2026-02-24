@@ -1,6 +1,6 @@
 import {
   Locale
-} from "./chunk-GN7TZPCV.js";
+} from "./chunk-FTH544AB.js";
 export {
   Locale
 };

@@ -45,12 +45,6 @@ describe("Locale.fallback", () => {
   })
 })
 
-describe("Locale.current", () => {
-  it("returns the passed locale", () => {
-    expect(Locale.current("fi")).toBe("fi")
-  })
-})
-
 describe("Locale.get", () => {
   it("returns all locale configs when called without a code", () => {
     expect(Locale.get()).toEqual(resolvedConfig.locales)

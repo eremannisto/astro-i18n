@@ -110,6 +110,56 @@ Returns the fallback locale code.
 Locale.fallback // "en"
 ```
 
+### `Locale.get(code?)`
+
+Returns the config for all locales, or a single locale by code.
+```typescript
+Locale.get()      // all locales
+Locale.get("fi")  // { code: "fi", name: "Finnish", endonym: "Suomi", ... }
+```
+
+### `Locale.use(locale)`
+
+Binds a locale and returns a translation function for that locale.
+Call once at the top of your page, then use the returned function
+to look up individual keys.
+
+Requires `translations` to be configured. Logs a warning if called
+without translations configured.
+```typescript
+const t = Locale.use(locale)
+t("nav.home")  // "Home"
+t()            // { "nav.home": "Home", ... }
+```
+
+### `Locale.middleware`
+
+Middleware that redirects requests without a locale prefix to the correct
+locale based on the user's cookie. Auto-registered when detection is
+`"server"` and `autoPrefix` is enabled.
+
+Can also be used manually:
+```typescript
+import { sequence } from "astro/middleware"
+import { Locale } from "@mannisto/astro-i18n/runtime"
+
+export const onRequest = sequence(Locale.middleware, myMiddleware)
+```
+
+### `Locale.supported`
+
+Returns all supported locale codes.
+```typescript
+Locale.supported // ["en", "fi"]
+```
+
+### `Locale.fallback`
+
+Returns the fallback locale code.
+```typescript
+Locale.fallback // "en"
+```
+
 ### `Locale.current(locale)`
 
 Returns the current locale from `Astro.params`.

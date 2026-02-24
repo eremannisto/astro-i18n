@@ -21,14 +21,6 @@ var Locale = {
     return config.routing.fallback;
   },
   /**
-   * Returns the current locale from Astro.params.
-   * @example
-   * const locale = Locale.current(Astro.params.locale)
-   */
-  current(locale) {
-    return locale;
-  },
-  /**
    * Returns the config for all locales, or a single locale by code.
    * Throws if the requested code is not found.
    *
