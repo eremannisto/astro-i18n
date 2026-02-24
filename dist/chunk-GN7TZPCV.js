@@ -50,36 +50,41 @@ var Locale = {
   // Translations
   // ==========================================================================
   /**
-   * Returns translations for a locale.
+   * Binds a locale and returns a translation function for that locale.
    *
-   * Without a key, returns the full translation object for that locale.
-   * With a key, returns the translated string for that key.
+   * Call once at the top of your page with the current locale, then use
+   * the returned function to look up individual keys.
    *
    * Warns if translations are not configured.
    * Throws if the locale or key is not found.
    *
    * @example
-   * Locale.t(locale)              // { "nav.home": "Home", ... }
-   * Locale.t(locale, "nav.home")  // "Home"
+   * const t = Locale.use(locale)
+   * t("nav.home")  // "Home"
+   * t()            // { "nav.home": "Home", ... }
    */
-  t(locale, key) {
+  use(locale) {
     if (!config.translations) {
       console.warn(
-        `${NAME} Locale.t() was called but translations are not configured. Add a translations path to your i18n config to enable translations.`
+        `${NAME} Locale.use() was called but translations are not configured. Add a translations path to your i18n config to enable translations.`
       );
-      return key ? "" : {};
+      return (key) => key ? "" : {};
     }
-    if (key) {
-      const record = translations[locale];
-      if (!record) {
-        throw new Error(`${NAME} No translations found for locale "${locale}".`);
+    const record = translations[locale];
+    return (key) => {
+      if (key) {
+        if (!record) {
+          throw new Error(`${NAME} No translations found for locale "${locale}".`);
+        }
+        if (!(key in record)) {
+          throw new Error(
+            `${NAME} Missing translation key "${key}" in ${locale}.json`
+          );
+        }
+        return record[key];
       }
-      if (!(key in record)) {
-        throw new Error(`${NAME} Missing translation key "${key}" in ${locale}.json`);
-      }
-      return record[key];
-    }
-    return translations[locale] ?? {};
+      return record ?? {};
+    };
   },
   // ==========================================================================
   // Middleware

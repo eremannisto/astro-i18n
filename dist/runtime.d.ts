@@ -35,19 +35,20 @@ declare const Locale: {
      */
     get(code?: LocaleCode): LocaleConfig | LocaleConfig[];
     /**
-     * Returns translations for a locale.
+     * Binds a locale and returns a translation function for that locale.
      *
-     * Without a key, returns the full translation object for that locale.
-     * With a key, returns the translated string for that key.
+     * Call once at the top of your page with the current locale, then use
+     * the returned function to look up individual keys.
      *
      * Warns if translations are not configured.
      * Throws if the locale or key is not found.
      *
      * @example
-     * Locale.t(locale)              // { "nav.home": "Home", ... }
-     * Locale.t(locale, "nav.home")  // "Home"
+     * const t = Locale.use(locale)
+     * t("nav.home")  // "Home"
+     * t()            // { "nav.home": "Home", ... }
      */
-    t(locale: LocaleCode, key?: string): string | Record<string, string>;
+    use(locale: LocaleCode): (key?: string) => string | Record<string, string>;
     /**
      * Middleware that redirects requests without a locale prefix to the
      * correct locale based on the user's cookie.
