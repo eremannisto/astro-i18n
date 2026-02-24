@@ -31,26 +31,30 @@ vi.mock("virtual:astro-i18n/config", () => ({
 
 const { Locale } = await import("../../src/lib/locale")
 
-describe("Translations via Locale.t", () => {
+describe("Translations via Locale.use", () => {
   it("returns the full translation object for a locale", () => {
-    expect(Locale.t("en")).toEqual(translationData.en)
-    expect(Locale.t("fi")).toEqual(translationData.fi)
+    expect(Locale.use("en")()).toEqual(translationData.en)
+    expect(Locale.use("fi")()).toEqual(translationData.fi)
   })
 
   it("returns the correct string for a key", () => {
-    expect(Locale.t("en", "nav.home")).toBe("Home")
-    expect(Locale.t("fi", "nav.home")).toBe("Etusivu")
+    expect(Locale.use("en")("nav.home")).toBe("Home")
+    expect(Locale.use("fi")("nav.home")).toBe("Etusivu")
   })
 
   it("throws for a missing translation key", () => {
-    expect(() => Locale.t("fi", "nav.missing")).toThrow('Missing translation key "nav.missing"')
+    expect(() => Locale.use("fi")("nav.missing")).toThrow(
+      'Missing translation key "nav.missing"'
+    )
   })
 
   it("throws for an unknown locale with a key", () => {
-    expect(() => Locale.t("de", "nav.home")).toThrow('No translations found for locale "de"')
+    expect(() => Locale.use("de")("nav.home")).toThrow(
+      'No translations found for locale "de"'
+    )
   })
 
   it("returns an empty object for an unknown locale without a key", () => {
-    expect(Locale.t("de")).toEqual({})
+    expect(Locale.use("de")()).toEqual({})
   })
 })

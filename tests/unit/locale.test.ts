@@ -70,31 +70,43 @@ describe("Locale.get", () => {
   })
 })
 
-describe("Locale.t — with translations", () => {
-  it("returns the full translation object for a locale", () => {
-    const t = Locale.t("fi") as Record<string, string>
-    expect(t["nav.home"]).toBe("Etusivu")
+describe("Locale.use — with translations", () => {
+  it("returns a function when called with a locale", () => {
+    expect(typeof Locale.use("en")).toBe("function")
+  })
+
+  it("returns the full translation object when called without a key", () => {
+    const t = Locale.use("fi")
+    expect(t()).toEqual(translationData.fi)
   })
 
   it("returns the translated string for a key", () => {
-    expect(Locale.t("fi", "nav.home")).toBe("Etusivu")
-    expect(Locale.t("en", "nav.home")).toBe("Home")
+    const t = Locale.use("fi")
+    expect(t("nav.home")).toBe("Etusivu")
+    expect(Locale.use("en")("nav.home")).toBe("Home")
   })
 
   it("throws for a missing translation key", () => {
-    expect(() => Locale.t("fi", "nav.missing")).toThrow('Missing translation key "nav.missing"')
+    const t = Locale.use("fi")
+    expect(() => t("nav.missing")).toThrow(
+      'Missing translation key "nav.missing"'
+    )
   })
 
   it("throws for an unknown locale when a key is provided", () => {
-    expect(() => Locale.t("de", "nav.home")).toThrow('No translations found for locale "de"')
+    const t = Locale.use("de")
+    expect(() => t("nav.home")).toThrow(
+      'No translations found for locale "de"'
+    )
   })
 
   it("returns an empty object for an unknown locale without a key", () => {
-    expect(Locale.t("de")).toEqual({})
+    const t = Locale.use("de")
+    expect(t()).toEqual({})
   })
 })
 
-describe("Locale.t — without translations", () => {
+describe("Locale.use — without translations", () => {
   beforeEach(() => {
     vi.resetModules()
   })
@@ -106,9 +118,11 @@ describe("Locale.t — without translations", () => {
     }))
     const { Locale: L } = await import("../../src/lib/locale")
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
-    const result = L.t("en", "nav.home")
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining("translations are not configured"))
-    expect(result).toBe("")
+    const t = L.use("en")
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining("translations are not configured")
+    )
+    expect(t("nav.home")).toBe("")
     warn.mockRestore()
   })
 
@@ -119,9 +133,11 @@ describe("Locale.t — without translations", () => {
     }))
     const { Locale: L } = await import("../../src/lib/locale")
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
-    const result = L.t("en")
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining("translations are not configured"))
-    expect(result).toEqual({})
+    const t = L.use("en")
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining("translations are not configured")
+    )
+    expect(t()).toEqual({})
     warn.mockRestore()
   })
 })

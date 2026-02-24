@@ -1,22 +1,22 @@
 ---
 import { Locale } from "@mannisto/astro-i18n/runtime"
 
-export const getStaticPaths = () => Locale.supported.map((code) => ({ params: { locale: code } }))
+export const getStaticPaths = () =>
+  Locale.supported.map((code) => ({ params: { locale: code } }))
 
 const { locale } = Astro.params
-const t = Locale.t(locale) as Record<string, string>
+const t = Locale.use(locale)
 ---
-
 <html lang={locale}>
   <head>
     <meta charset="UTF-8" />
-    <title>{t["nav.home"]}</title>
+    <title>{t("nav.home")}</title>
   </head>
   <body>
-    <h1>{t["nav.home"]}</h1>
+    <h1>{t("nav.home")}</h1>
     <nav>
-      <a href={`/${locale}/`}>{t["nav.home"]}</a>
-      <a href={`/${locale}/about`}>{t["nav.about"]}</a>
+      <a href={`/${locale}/`}>{t("nav.home")}</a>
+      <a href={`/${locale}/about`}>{t("nav.about")}</a>
     </nav>
   </body>
 </html>
