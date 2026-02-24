@@ -33,15 +33,6 @@ export const Locale = {
   },
 
   /**
-   * Returns the current locale from Astro.params.
-   * @example
-   * const locale = Locale.current(Astro.params.locale)
-   */
-  current(locale: string): LocaleCode {
-    return locale
-  },
-
-  /**
    * Returns the config for all locales, or a single locale by code.
    * Throws if the requested code is not found.
    *
@@ -79,7 +70,6 @@ export const Locale = {
    * t()            // { "nav.home": "Home", ... }
    */
   use(locale: LocaleCode): (key?: string) => string | Record<string, string> {
-    // warn if translations were not configured
     if (!config.translations) {
       console.warn(
         `${NAME} Locale.use() was called but translations are not configured. ` +
@@ -126,23 +116,19 @@ export const Locale = {
     const ignoreList =
       config.routing.autoPrefix !== false ? (config.routing.autoPrefix.ignore ?? []) : []
 
-    // pass through ignored paths (e.g. /_astro, /keystatic)
     if (ignoreList.some((path: string) => pathname.startsWith(path))) {
       return next()
     }
 
-    // pass through root — handled by the detection route
     if (pathname === "/") {
       return next()
     }
 
-    // pass through paths that already have a locale prefix
     const firstSegment = pathname.split("/")[1]
     if (config.locales.map((l: LocaleConfig) => l.code).includes(firstSegment)) {
       return next()
     }
 
-    // redirect to the locale stored in the cookie, or the fallback
     const stored = cookies.get("locale")?.value
     const targetLocale =
       stored && config.locales.map((l: LocaleConfig) => l.code).includes(stored)

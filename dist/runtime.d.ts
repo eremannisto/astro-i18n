@@ -20,12 +20,6 @@ declare const Locale: {
      */
     readonly fallback: LocaleCode;
     /**
-     * Returns the current locale from Astro.params.
-     * @example
-     * const locale = Locale.current(Astro.params.locale)
-     */
-    current(locale: string): LocaleCode;
-    /**
      * Returns the config for all locales, or a single locale by code.
      * Throws if the requested code is not found.
      *

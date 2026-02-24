@@ -1,6 +1,6 @@
 import {
   Locale
-} from "../chunk-GN7TZPCV.js";
+} from "../chunk-FTH544AB.js";
 
 // src/detect/server.ts
 var prerender = false;
