@@ -69,11 +69,6 @@ describe("Locale.use — with translations", () => {
     expect(typeof Locale.use("en")).toBe("function")
   })
 
-  it("returns the full translation object when called without a key", () => {
-    const t = Locale.use("fi")
-    expect(t()).toEqual(translationData.fi)
-  })
-
   it("returns the translated string for a key", () => {
     const t = Locale.use("fi")
     expect(t("nav.home")).toBe("Etusivu")
@@ -85,14 +80,9 @@ describe("Locale.use — with translations", () => {
     expect(() => t("nav.missing")).toThrow('Missing translation key "nav.missing"')
   })
 
-  it("throws for an unknown locale when a key is provided", () => {
+  it("throws for an unknown locale", () => {
     const t = Locale.use("de")
     expect(() => t("nav.home")).toThrow('No translations found for locale "de"')
-  })
-
-  it("returns an empty object for an unknown locale without a key", () => {
-    const t = Locale.use("de")
-    expect(t()).toEqual({})
   })
 })
 
@@ -111,19 +101,6 @@ describe("Locale.use — without translations", () => {
     const t = L.use("en")
     expect(warn).toHaveBeenCalledWith(expect.stringContaining("translations are not configured"))
     expect(t("nav.home")).toBe("")
-    warn.mockRestore()
-  })
-
-  it("warns and returns empty object when translations are not configured and no key", async () => {
-    vi.doMock("virtual:astro-i18n/config", () => ({
-      config: { ...resolvedConfig, translations: undefined },
-      translations: {},
-    }))
-    const { Locale: L } = await import("../../src/lib/locale")
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
-    const t = L.use("en")
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining("translations are not configured"))
-    expect(t()).toEqual({})
     warn.mockRestore()
   })
 })

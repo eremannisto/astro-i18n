@@ -53,29 +53,23 @@ var Locale = {
    * @example
    * const t = Locale.use(locale)
    * t("nav.home")  // "Home"
-   * t()            // { "nav.home": "Home", ... }
    */
   use(locale) {
     if (!config.translations) {
       console.warn(
         `${NAME} Locale.use() was called but translations are not configured. Add a translations path to your i18n config to enable translations.`
       );
-      return (key) => key ? "" : {};
+      return () => "";
     }
     const record = translations[locale];
     return (key) => {
-      if (key) {
-        if (!record) {
-          throw new Error(`${NAME} No translations found for locale "${locale}".`);
-        }
-        if (!(key in record)) {
-          throw new Error(
-            `${NAME} Missing translation key "${key}" in ${locale}.json`
-          );
-        }
-        return record[key];
+      if (!record) {
+        throw new Error(`${NAME} No translations found for locale "${locale}".`);
       }
-      return record ?? {};
+      if (!(key in record)) {
+        throw new Error(`${NAME} Missing translation key "${key}" in ${locale}.json`);
+      }
+      return record[key];
     };
   },
   // ==========================================================================

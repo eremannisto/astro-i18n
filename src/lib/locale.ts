@@ -67,30 +67,27 @@ export const Locale = {
    * @example
    * const t = Locale.use(locale)
    * t("nav.home")  // "Home"
-   * t()            // { "nav.home": "Home", ... }
    */
-  use(locale: LocaleCode): (key?: string) => string | Record<string, string> {
+  use(locale: LocaleCode): (key: string) => string {
+    // warn if translations were not configured
     if (!config.translations) {
       console.warn(
         `${NAME} Locale.use() was called but translations are not configured. ` +
           `Add a translations path to your i18n config to enable translations.`
       )
-      return (key?: string) => (key ? "" : {})
+      return () => ""
     }
 
     const record = translations[locale]
 
-    return (key?: string): string | Record<string, string> => {
-      if (key) {
-        if (!record) {
-          throw new Error(`${NAME} No translations found for locale "${locale}".`)
-        }
-        if (!(key in record)) {
-          throw new Error(`${NAME} Missing translation key "${key}" in ${locale}.json`)
-        }
-        return record[key]
+    return (key: string): string => {
+      if (!record) {
+        throw new Error(`${NAME} No translations found for locale "${locale}".`)
       }
-      return record ?? {}
+      if (!(key in record)) {
+        throw new Error(`${NAME} Missing translation key "${key}" in ${locale}.json`)
+      }
+      return record[key]
     }
   },
 
@@ -116,19 +113,23 @@ export const Locale = {
     const ignoreList =
       config.routing.autoPrefix !== false ? (config.routing.autoPrefix.ignore ?? []) : []
 
+    // pass through ignored paths (e.g. /_astro, /keystatic)
     if (ignoreList.some((path: string) => pathname.startsWith(path))) {
       return next()
     }
 
+    // pass through root — handled by the detection route
     if (pathname === "/") {
       return next()
     }
 
+    // pass through paths that already have a locale prefix
     const firstSegment = pathname.split("/")[1]
     if (config.locales.map((l: LocaleConfig) => l.code).includes(firstSegment)) {
       return next()
     }
 
+    // redirect to the locale stored in the cookie, or the fallback
     const stored = cookies.get("locale")?.value
     const targetLocale =
       stored && config.locales.map((l: LocaleConfig) => l.code).includes(stored)
