@@ -96,9 +96,7 @@ export const Locale = {
           throw new Error(`${NAME} No translations found for locale "${locale}".`)
         }
         if (!(key in record)) {
-          throw new Error(
-            `${NAME} Missing translation key "${key}" in ${locale}.json`
-          )
+          throw new Error(`${NAME} Missing translation key "${key}" in ${locale}.json`)
         }
         return record[key]
       }
@@ -126,9 +124,7 @@ export const Locale = {
     const pathname = url.pathname
 
     const ignoreList =
-      config.routing.autoPrefix !== false
-        ? (config.routing.autoPrefix.ignore ?? [])
-        : []
+      config.routing.autoPrefix !== false ? (config.routing.autoPrefix.ignore ?? []) : []
 
     // pass through ignored paths (e.g. /_astro, /keystatic)
     if (ignoreList.some((path: string) => pathname.startsWith(path))) {

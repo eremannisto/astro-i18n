@@ -43,15 +43,11 @@ describe("Translations via Locale.use", () => {
   })
 
   it("throws for a missing translation key", () => {
-    expect(() => Locale.use("fi")("nav.missing")).toThrow(
-      'Missing translation key "nav.missing"'
-    )
+    expect(() => Locale.use("fi")("nav.missing")).toThrow('Missing translation key "nav.missing"')
   })
 
   it("throws for an unknown locale with a key", () => {
-    expect(() => Locale.use("de")("nav.home")).toThrow(
-      'No translations found for locale "de"'
-    )
+    expect(() => Locale.use("de")("nav.home")).toThrow('No translations found for locale "de"')
   })
 
   it("returns an empty object for an unknown locale without a key", () => {
