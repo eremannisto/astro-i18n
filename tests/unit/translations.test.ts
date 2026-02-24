@@ -32,11 +32,6 @@ vi.mock("virtual:astro-i18n/config", () => ({
 const { Locale } = await import("../../src/lib/locale")
 
 describe("Translations via Locale.use", () => {
-  it("returns the full translation object for a locale", () => {
-    expect(Locale.use("en")()).toEqual(translationData.en)
-    expect(Locale.use("fi")()).toEqual(translationData.fi)
-  })
-
   it("returns the correct string for a key", () => {
     expect(Locale.use("en")("nav.home")).toBe("Home")
     expect(Locale.use("fi")("nav.home")).toBe("Etusivu")
@@ -46,11 +41,7 @@ describe("Translations via Locale.use", () => {
     expect(() => Locale.use("fi")("nav.missing")).toThrow('Missing translation key "nav.missing"')
   })
 
-  it("throws for an unknown locale with a key", () => {
+  it("throws for an unknown locale", () => {
     expect(() => Locale.use("de")("nav.home")).toThrow('No translations found for locale "de"')
-  })
-
-  it("returns an empty object for an unknown locale without a key", () => {
-    expect(Locale.use("de")()).toEqual({})
   })
 })

@@ -1,5 +1,7 @@
 # Astro Internationalization (i18n)
 
+![banner](./assets/banner.png)
+
 ![npm version](https://img.shields.io/npm/v/@mannisto/astro-i18n)
 ![license](https://img.shields.io/badge/license-MIT-green)
 ![astro peer dependency](https://img.shields.io/npm/dependency-version/@mannisto/astro-i18n/peer/astro)
@@ -122,14 +124,14 @@ Locale.get("fi")  // { code: "fi", name: "Finnish", endonym: "Suomi", ... }
 
 Binds a locale and returns a translation function for that locale.
 Call once at the top of your page, then use the returned function
-to look up individual keys.
+to look up keys by name.
 
 Requires `translations` to be configured. Logs a warning if called
 without translations configured.
 ```typescript
 const t = Locale.use(locale)
 t("nav.home")  // "Home"
-t()            // { "nav.home": "Home", ... }
+t("nav.about") // "About"
 ```
 
 ### `Locale.middleware`

@@ -40,9 +40,8 @@ declare const Locale: {
      * @example
      * const t = Locale.use(locale)
      * t("nav.home")  // "Home"
-     * t()            // { "nav.home": "Home", ... }
      */
-    use(locale: LocaleCode): (key?: string) => string | Record<string, string>;
+    use(locale: LocaleCode): (key: string) => string;
     /**
      * Middleware that redirects requests without a locale prefix to the
      * correct locale based on the user's cookie.
