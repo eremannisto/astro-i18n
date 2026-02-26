@@ -9,12 +9,12 @@ export const Validate = {
    * Throws a descriptive error if anything is invalid.
    */
   config(config: I18nConfig): void {
-    // locales must be defined and non-empty
+    // Locales must be defined and non-empty
     if (!config.locales || config.locales.length === 0) {
       throw new Error(`${NAME} No locales defined.`)
     }
 
-    // each locale must have a code, name, and endonym
+    // Each locale must have a code, name, and endonym
     for (const locale of config.locales) {
       if (!locale.code) {
         throw new Error(`${NAME} A locale is missing a code.`)
@@ -27,32 +27,30 @@ export const Validate = {
       }
     }
 
-    // fallback must be one of the defined locales
-    if (config.routing?.fallback) {
+    // defaultLocale must be one of the defined locales
+    if (config.defaultLocale) {
       const codes = config.locales.map((l) => l.code)
-      if (!codes.includes(config.routing.fallback)) {
-        throw new Error(
-          `${NAME} Fallback locale "${config.routing.fallback}" not found in locales.`
-        )
+      if (!codes.includes(config.defaultLocale)) {
+        throw new Error(`${NAME} defaultLocale "${config.defaultLocale}" not found in locales.`)
       }
     }
 
-    // autoPrefix is only meaningful with server detection
-    if (config.routing?.autoPrefix && config.routing?.detection !== "server") {
-      throw new Error(`${NAME} autoPrefix is only valid when detection is "server".`)
+    // ignore is only meaningful in server mode
+    if (config.ignore && config.mode !== "server") {
+      throw new Error(`${NAME} "ignore" is only valid when mode is "server".`)
     }
   },
 
   /**
    * Validates that translation files exist for all locales and that all
-   * locales share the same keys as the fallback locale.
+   * locales share the same keys as the default locale.
    *
    * Returns the loaded translation data for use in the virtual module.
    */
   translations(config: ResolvedI18nConfig): Record<string, Record<string, string>> {
     const data: Record<string, Record<string, string>> = {}
 
-    // load each locale's translation file
+    // Load each locale's translation file
     for (const locale of config.locales) {
       const filePath = `${config.translations}/${locale.code}.json`
       if (!fs.existsSync(filePath)) {
@@ -61,12 +59,12 @@ export const Validate = {
       data[locale.code] = JSON.parse(fs.readFileSync(filePath, "utf-8"))
     }
 
-    // all locales must have the same keys as the fallback
-    const fallbackKeys = Object.keys(data[config.routing.fallback])
+    // All locales must have the same keys as the default locale
+    const defaultKeys = Object.keys(data[config.defaultLocale])
     for (const locale of config.locales) {
-      if (locale.code === config.routing.fallback) continue
+      if (locale.code === config.defaultLocale) continue
       const localeKeys = Object.keys(data[locale.code])
-      for (const key of fallbackKeys) {
+      for (const key of defaultKeys) {
         if (!localeKeys.includes(key)) {
           throw new Error(`${NAME} Missing translation key "${key}" in ${locale.code}.json`)
         }
@@ -78,16 +76,15 @@ export const Validate = {
 
   /**
    * Validates that there is no conflicting src/pages/index.astro when
-   * detection is not "none". If one exists it would intercept the injected
+   * mode is not undefined. If one exists it would intercept the injected
    * detection route at /.
    */
-  index(root: URL, detection: string): void {
-    if (detection === "none") return
+  index(root: URL, mode: string | undefined): void {
+    if (!mode) return
     const indexPath = new URL("./src/pages/index.astro", root)
     if (fs.existsSync(indexPath)) {
       throw new Error(
-        `${NAME} Found conflicting src/pages/index.astro — ` +
-          `remove it or set routing.detection to "none".`
+        `${NAME} Found conflicting src/pages/index.astro — remove it or leave mode unset.`
       )
     }
   },

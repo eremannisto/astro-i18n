@@ -2,8 +2,8 @@ import { defineConfig } from "@playwright/test"
 
 const ports = {
   server: 4321,
-  client: 4322,
-  none: 4323,
+  static: 4322,
+  hybrid: 4323,
 }
 
 export default defineConfig({
@@ -17,18 +17,14 @@ export default defineConfig({
       testMatch: "**/e2e/server.test.ts",
     },
     {
-      name: "client",
-      use: { baseURL: `http://localhost:${ports.client}` },
-      testMatch: "**/e2e/client.test.ts",
+      name: "static",
+      use: { baseURL: `http://localhost:${ports.static}` },
+      testMatch: "**/e2e/static.test.ts",
     },
     {
-      name: "none",
-      use: { baseURL: `http://localhost:${ports.none}` },
-      testMatch: "**/e2e/none.test.ts",
-    },
-    {
-      name: "errors",
-      testMatch: "**/e2e/errors.test.ts",
+      name: "hybrid",
+      use: { baseURL: `http://localhost:${ports.hybrid}` },
+      testMatch: "**/e2e/hybrid.test.ts",
     },
   ],
   webServer: [
@@ -39,15 +35,15 @@ export default defineConfig({
       reuseExistingServer: !process.env.CI,
     },
     {
-      command: `pnpm astro dev --port ${ports.client}`,
-      cwd: "./tests/e2e/fixtures/client",
-      port: ports.client,
+      command: `pnpm astro dev --port ${ports.static}`,
+      cwd: "./tests/e2e/fixtures/static",
+      port: ports.static,
       reuseExistingServer: !process.env.CI,
     },
     {
-      command: `pnpm astro dev --port ${ports.none}`,
-      cwd: "./tests/e2e/fixtures/none",
-      port: ports.none,
+      command: `pnpm astro dev --port ${ports.hybrid}`,
+      cwd: "./tests/e2e/fixtures/hybrid",
+      port: ports.hybrid,
       reuseExistingServer: !process.env.CI,
     },
   ],

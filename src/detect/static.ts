@@ -2,12 +2,12 @@ import type { APIRoute } from "astro"
 import { config } from "virtual:astro-i18n/config"
 import type { LocaleConfig } from "../types"
 
-// Injected at / when detection is "client".
+// Injected at / when mode is "static".
 //
 // Serves a prerendered static HTML page with an inline JS redirect script.
-// On first visit, reads navigator.language to determine the user's preferred
-// locale, stores it in localStorage so subsequent visits skip detection,
-// then redirects to the appropriate locale URL.
+// On first visit, reads localStorage to find a stored preference. If none
+// exists, falls back to the defaultLocale. Stores the result in localStorage
+// so subsequent visits skip detection, then redirects to the locale URL.
 //
 // Works in both dev and production since it is a prerendered route rather
 // than a file written to the output directory.
@@ -15,7 +15,7 @@ export const prerender = true
 
 export const GET: APIRoute = () => {
   const supported = config.locales.map((l: LocaleConfig) => l.code)
-  const fallback = config.routing.fallback
+  const defaultLocale = config.defaultLocale
 
   const html = `<!DOCTYPE html>
 <html>
@@ -23,10 +23,9 @@ export const GET: APIRoute = () => {
     <meta charset="UTF-8" />
     <script>
       const supported = ${JSON.stringify(supported)};
-      const fallback = "${fallback}";
+      const defaultLocale = "${defaultLocale}";
       const stored = localStorage.getItem("locale");
-      const preferred = navigator.language.split("-")[0];
-      const locale = stored ?? (supported.includes(preferred) ? preferred : fallback);
+      const locale = (stored && supported.includes(stored)) ? stored : defaultLocale;
       localStorage.setItem("locale", locale);
       window.location.replace("/" + locale + "/");
     </script>
