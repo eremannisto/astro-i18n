@@ -1,4 +1,4 @@
-// src/detect/server.ts
+// src/detect/hybrid.ts
 import { config } from "virtual:astro-i18n/config";
 var prerender = false;
 var GET = ({ cookies, redirect }) => {

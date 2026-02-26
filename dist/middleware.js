@@ -1,6 +1,6 @@
 import {
   Locale
-} from "./chunk-FIVUWQMH.js";
+} from "./chunk-VJCVMQDE.js";
 
 // src/middleware.ts
 var onRequest = Locale.middleware;
