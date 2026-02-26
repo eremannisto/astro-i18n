@@ -3,7 +3,7 @@ import { Locale } from "@mannisto/astro-i18n/runtime"
 
 export const getStaticPaths = () => Locale.supported.map((code) => ({ params: { locale: code } }))
 
-const { locale } = Astro.params
+const locale = Locale.from(Astro.url)
 const t = Locale.use(locale)
 ---
 
@@ -13,7 +13,7 @@ const t = Locale.use(locale)
     <title>{t("nav.about")}</title>
   </head>
   <body>
-    <h1>{t("nav.about")}</h1>
-    <p>{t("footer.copyright")}</p>
+    <h1 data-testid="title">{t("nav.about")}</h1>
+    <p data-testid="copyright">{t("footer.copyright")}</p>
   </body>
 </html>

@@ -3,101 +3,111 @@ import { describe, it, expect, vi } from "vitest"
 const resolvedConfig = {
   locales: [
     { code: "en", name: "English", endonym: "English" },
-    { code: "fi", name: "Finnish", endonym: "Suomi", phrase: "Suomeksi" },
+    { code: "fi", name: "Finnish", endonym: "Suomi" },
   ],
-  routing: {
-    fallback: "en",
-    detection: "server",
-    autoPrefix: { ignore: ["/_astro", "/keystatic"] },
-  },
-  translations: "./src/translations",
-}
-
-const translationData = {
-  en: { "nav.home": "Home" },
-  fi: { "nav.home": "Etusivu" },
+  mode: "server",
+  defaultLocale: "en",
+  ignore: ["/_astro", "/keystatic"],
+  translations: undefined,
 }
 
 vi.mock("virtual:astro-i18n/config", () => ({
   config: resolvedConfig,
-  translations: translationData,
+  translations: {},
 }))
 
 const { Locale } = await import("../../src/lib/locale")
 
-function createContext(pathname: string, localeCookie?: string) {
+// Helper to create a mock middleware context
+function createContext(pathname: string, cookieLocale?: string) {
+  const cookies = new Map<string, string>()
+  if (cookieLocale) cookies.set("locale", cookieLocale)
+
   return {
-    url: new URL(`http://localhost:4321${pathname}`),
+    url: new URL(`https://example.com${pathname}`),
     cookies: {
-      get: (name: string) =>
-        name === "locale" && localeCookie ? { value: localeCookie } : undefined,
+      get: (key: string) => (cookies.has(key) ? { value: cookies.get(key)! } : undefined),
+      set: (key: string, value: string) => cookies.set(key, value),
     },
-    redirect: (url: string) => new Response(null, { status: 302, headers: { location: url } }),
+    locals: {} as Record<string, string>,
+    redirect: (url: string, status: number) =>
+      new Response(null, {
+        status,
+        headers: { location: url },
+      }),
   }
 }
 
+function next() {
+  return Promise.resolve(new Response("ok"))
+}
+
+async function run(pathname: string, cookieLocale?: string): Promise<Response> {
+  const ctx = createContext(pathname, cookieLocale)
+  const response = await Locale.middleware(ctx as any, next)
+  return response as Response
+}
+
 describe("Locale.middleware", () => {
-  it("passes through ignored path /_astro", async () => {
-    const ctx = createContext("/_astro/style.css")
-    let nextCalled = false
-    await Locale.middleware(ctx as any, async () => {
-      nextCalled = true
-      return new Response()
-    })
-    expect(nextCalled).toBe(true)
+  it("passes through ignored paths", async () => {
+    const response = await run("/_astro/chunk.js")
+    expect(response.status).toBe(200)
   })
 
-  it("passes through ignored path /keystatic", async () => {
-    const ctx = createContext("/keystatic")
-    let nextCalled = false
-    await Locale.middleware(ctx as any, async () => {
-      nextCalled = true
-      return new Response()
-    })
-    expect(nextCalled).toBe(true)
+  it("passes through /keystatic", async () => {
+    const response = await run("/keystatic/dashboard")
+    expect(response.status).toBe(200)
   })
 
   it("passes through root /", async () => {
-    const ctx = createContext("/")
-    let nextCalled = false
-    await Locale.middleware(ctx as any, async () => {
-      nextCalled = true
-      return new Response()
-    })
-    expect(nextCalled).toBe(true)
+    const response = await run("/")
+    expect(response.status).toBe(200)
   })
 
-  it("passes through known locale prefix /en/", async () => {
-    const ctx = createContext("/en/")
-    let nextCalled = false
-    await Locale.middleware(ctx as any, async () => {
-      nextCalled = true
-      return new Response()
-    })
-    expect(nextCalled).toBe(true)
+  it("passes through locale-prefixed paths", async () => {
+    const response = await run("/en/about")
+    expect(response.status).toBe(200)
   })
 
-  it("passes through known locale prefix /fi/about", async () => {
+  it("sets locals.locale for locale-prefixed paths", async () => {
     const ctx = createContext("/fi/about")
-    let nextCalled = false
-    await Locale.middleware(ctx as any, async () => {
-      nextCalled = true
-      return new Response()
-    })
-    expect(nextCalled).toBe(true)
+    await Locale.middleware(ctx as any, next)
+    expect(ctx.locals.locale).toBe("fi")
   })
 
-  it("redirects to fallback when no cookie is set", async () => {
-    const ctx = createContext("/de/")
-    const response = await Locale.middleware(ctx as any, async () => new Response())
-    expect(response).toBeInstanceOf(Response)
-    expect((response as Response).headers.get("location")).toBe("/en/de/")
+  it("updates cookie when locale changes", async () => {
+    const ctx = createContext("/fi/about", "en")
+    await Locale.middleware(ctx as any, next)
+    expect(ctx.cookies.get("locale")?.value).toBe("fi")
   })
 
-  it("redirects to cookie locale when cookie is set", async () => {
-    const ctx = createContext("/de/", "fi")
-    const response = await Locale.middleware(ctx as any, async () => new Response())
-    expect(response).toBeInstanceOf(Response)
-    expect((response as Response).headers.get("location")).toBe("/fi/de/")
+  it("does not update cookie when locale is unchanged", async () => {
+    const setCalled = vi.fn()
+    const ctx = createContext("/fi/about", "fi")
+    const originalSet = ctx.cookies.set
+    ctx.cookies.set = (...args) => {
+      setCalled()
+      return originalSet(...args)
+    }
+    await Locale.middleware(ctx as any, next)
+    expect(setCalled).not.toHaveBeenCalled()
+  })
+
+  it("redirects unprefixed path to defaultLocale when no cookie", async () => {
+    const response = await run("/about")
+    expect(response.status).toBe(302)
+    expect(response.headers.get("location")).toBe("/en/about")
+  })
+
+  it("redirects unprefixed path to cookie locale", async () => {
+    const response = await run("/about", "fi")
+    expect(response.status).toBe(302)
+    expect(response.headers.get("location")).toBe("/fi/about")
+  })
+
+  it("redirects to defaultLocale when cookie has unknown locale", async () => {
+    const response = await run("/about", "de")
+    expect(response.status).toBe(302)
+    expect(response.headers.get("location")).toBe("/en/about")
   })
 })

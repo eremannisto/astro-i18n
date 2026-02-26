@@ -5,11 +5,9 @@ const resolvedConfig = {
     { code: "en", name: "English", endonym: "English" },
     { code: "fi", name: "Finnish", endonym: "Suomi", phrase: "Suomeksi" },
   ],
-  routing: {
-    fallback: "en",
-    detection: "server",
-    autoPrefix: { ignore: ["/_astro"] },
-  },
+  mode: "server",
+  defaultLocale: "en",
+  ignore: ["/_astro"],
   translations: "./src/translations",
 }
 
@@ -39,9 +37,25 @@ describe("Locale.supported", () => {
   })
 })
 
-describe("Locale.fallback", () => {
-  it("returns the fallback locale code", () => {
-    expect(Locale.fallback).toBe("en")
+describe("Locale.defaultLocale", () => {
+  it("returns the default locale code", () => {
+    expect(Locale.defaultLocale).toBe("en")
+  })
+})
+
+describe("Locale.from", () => {
+  it("returns the locale from a URL", () => {
+    expect(Locale.from(new URL("https://example.com/fi/about"))).toBe("fi")
+    expect(Locale.from(new URL("https://example.com/en/"))).toBe("en")
+  })
+
+  it("returns defaultLocale when no locale found in URL", () => {
+    expect(Locale.from(new URL("https://example.com/about"))).toBe("en")
+    expect(Locale.from(new URL("https://example.com/"))).toBe("en")
+  })
+
+  it("returns defaultLocale for unknown locale in URL", () => {
+    expect(Locale.from(new URL("https://example.com/de/about"))).toBe("en")
   })
 })
 
@@ -61,6 +75,36 @@ describe("Locale.get", () => {
 
   it("throws for an unknown locale code", () => {
     expect(() => Locale.get("de")).toThrow('Locale "de" not found.')
+  })
+})
+
+describe("Locale.url", () => {
+  it("returns locale root when no path provided", () => {
+    expect(Locale.url("fi")).toBe("/fi/")
+    expect(Locale.url("en")).toBe("/en/")
+  })
+
+  it("returns locale root when path is /", () => {
+    expect(Locale.url("fi", "/")).toBe("/fi/")
+  })
+
+  it("builds a locale-prefixed URL from a plain path", () => {
+    expect(Locale.url("fi", "/about")).toBe("/fi/about")
+    expect(Locale.url("en", "/about")).toBe("/en/about")
+  })
+
+  it("strips existing locale prefix before building URL", () => {
+    expect(Locale.url("fi", "/en/about")).toBe("/fi/about")
+    expect(Locale.url("en", "/fi/about")).toBe("/en/about")
+  })
+})
+
+describe("Locale.switch", () => {
+  it("warns when called on the server", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
+    Locale.switch("fi")
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("can only be called in the browser"))
+    warn.mockRestore()
   })
 })
 

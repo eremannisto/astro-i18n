@@ -1,5 +1,5 @@
 {
-  "name": "astro-i18n-fixture-client",
+  "name": "astro-i18n-fixture-static",
   "private": true,
   "type": "module",
   "scripts": {
