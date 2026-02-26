@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test"
 
-test.describe("server mode — locale pages", () => {
+test.describe("hybrid mode — locale pages", () => {
   test("renders English home page", async ({ page }) => {
     await page.goto("/en/")
     await expect(page.getByTestId("title")).toHaveText("Home")
@@ -26,7 +26,7 @@ test.describe("server mode — locale pages", () => {
   })
 })
 
-test.describe("server mode — root detection", () => {
+test.describe("hybrid mode — root detection", () => {
   test("redirects / to defaultLocale when no cookie", async ({ page }) => {
     await page.context().clearCookies()
     await page.goto("/")
@@ -48,40 +48,16 @@ test.describe("server mode — root detection", () => {
     await page.goto("/")
     await expect(page).toHaveURL("/en/")
   })
-})
 
-test.describe("server mode — middleware", () => {
-  test("redirects unprefixed path to defaultLocale when no cookie", async ({ page }) => {
-    await page.context().clearCookies()
-    await page.goto("/about")
-    await expect(page).toHaveURL("/en/about")
-  })
-
-  test("redirects unprefixed path to cookie locale", async ({ page }) => {
-    await page
-      .context()
-      .addCookies([{ name: "locale", value: "fi", domain: "localhost", path: "/" }])
-    await page.goto("/about")
-    await expect(page).toHaveURL("/fi/about")
-  })
-
-  test("updates cookie when navigating to new locale", async ({ page }) => {
-    await page
-      .context()
-      .addCookies([{ name: "locale", value: "en", domain: "localhost", path: "/" }])
-    await page.goto("/fi/")
-    const cookies = await page.context().cookies()
-    const locale = cookies.find((c) => c.name === "locale")
-    expect(locale?.value).toBe("fi")
-  })
-
-  test("persists locale preference on return visit to /", async ({ page }) => {
+  test("updates cookie via Locale.switch and persists on return visit to /", async ({ page }) => {
     await page.context().clearCookies()
     // First visit — defaults to en
     await page.goto("/")
     await expect(page).toHaveURL("/en/")
-    // Navigate to fi
-    await page.goto("/fi/")
+    // Simulate Locale.switch("fi") updating the cookie client-side
+    await page.evaluate(() => {
+      document.cookie = "locale=fi; path=/; max-age=31536000; SameSite=Lax; Secure"
+    })
     // Return to / — should redirect to fi
     await page.goto("/")
     await expect(page).toHaveURL("/fi/")

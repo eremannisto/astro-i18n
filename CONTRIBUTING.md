@@ -1,6 +1,7 @@
 # Contributing
 
 ## Setup
+
 ```bash
 # install dependencies and playwright browsers
 pnpm install
@@ -8,6 +9,7 @@ pnpm playwright install chromium
 ```
 
 ## Development
+
 ```bash
 # build the package
 pnpm build
@@ -23,6 +25,7 @@ pnpm format
 ```
 
 ## Testing
+
 ```bash
 # run unit tests
 pnpm test:unit
@@ -35,6 +38,7 @@ pnpm test
 ```
 
 ## Publishing
+
 ```bash
 # bump version in package.json, then:
 pnpm publish --access public

@@ -5,66 +5,30 @@ import { Validate } from "./lib/validate"
 const NAME = "@mannisto/astro-i18n"
 const DEFAULT_IGNORE = ["/_astro"]
 
-// ============================================================================
-// Config resolution
-// ============================================================================
-
+/**
+ * Resolves the user-supplied config object into a fully configured object.
+ * @param config - The user-supplied config object.
+ * @returns The fully configured object.
+ */
 function resolveConfig(config: I18nConfig): ResolvedI18nConfig {
-  const fallback = config.routing?.fallback ?? config.locales[0].code
-  const detection = config.routing?.detection ?? "client"
-
-  // autoPrefix is only valid with server detection, and defaults to enabled
-  // with /_astro ignored. users can extend the ignore list or disable entirely.
-  const autoPrefix =
-    config.routing?.autoPrefix === false
-      ? false
-      : {
-          ignore: [
-            ...DEFAULT_IGNORE,
-            ...(typeof config.routing?.autoPrefix === "object"
-              ? (config.routing.autoPrefix.ignore ?? [])
-              : []),
-          ],
-        }
+  const mode = config.mode ?? "static"
+  const defaultLocale = config.defaultLocale ?? config.locales[0].code
+  const ignore = [...DEFAULT_IGNORE, ...(config.ignore ?? [])]
 
   return {
     locales: config.locales,
-    routing: { fallback, detection, autoPrefix },
-
-    // translations are optional — undefined means disabled
+    mode,
+    defaultLocale,
+    ignore,
     translations: config.translations,
   }
 }
-
-// ============================================================================
-// Integration
-// ============================================================================
 
 /**
  * The @mannisto/astro-i18n Astro integration.
  *
  * Adds locale routing, detection, and translations to your Astro project
  * without relying on Astro's built-in i18n system.
- *
- * @example
- * import i18n from "@mannisto/astro-i18n"
- *
- * export default defineConfig({
- *   integrations: [
- *     i18n({
- *       locales: [
- *         { code: "en", name: "English", endonym: "English" },
- *         { code: "fi", name: "Finnish", endonym: "Suomi", phrase: "Suomeksi" },
- *       ],
- *       routing: {
- *         fallback: "en",
- *         detection: "server",
- *         autoPrefix: { ignore: ["/keystatic"] },
- *       },
- *       translations: "./src/translations",
- *     }),
- *   ],
- * })
  */
 export default function i18n(config: I18nConfig): AstroIntegration {
   let resolved: ResolvedI18nConfig
@@ -73,12 +37,8 @@ export default function i18n(config: I18nConfig): AstroIntegration {
   return {
     name: NAME,
     hooks: {
-      // ======================================================================
-      // astro:config:setup
-      //
       // Validates config, registers the Vite virtual module plugin, injects
-      // detection routes, and registers the autoPrefix middleware.
-      // ======================================================================
+      // detection routes, and registers the middleware.
       "astro:config:setup": ({
         config: astroConfig,
         updateConfig,
@@ -86,7 +46,7 @@ export default function i18n(config: I18nConfig): AstroIntegration {
         addMiddleware,
         logger,
       }) => {
-        // warn if Astro's built-in i18n is also configured
+        // Warn if Astro's built-in i18n is also configured
         if (astroConfig.i18n) {
           logger.warn(
             "Astro's built-in i18n is configured. " +
@@ -95,7 +55,7 @@ export default function i18n(config: I18nConfig): AstroIntegration {
         }
 
         Validate.config(config)
-        Validate.index(astroConfig.root, config.routing?.detection ?? "client")
+        Validate.index(astroConfig.root, config.mode)
 
         resolved = resolveConfig(config)
 
@@ -126,9 +86,19 @@ export const translations = ${JSON.stringify(translationData)}
           },
         })
 
-        // server detection — inject a server-side API route at /
-        // requires an adapter for production builds
-        if (resolved.routing.detection === "server") {
+        // Static mode — inject a prerendered static route at /
+        // Works in both dev and production without an adapter
+        if (resolved.mode === "static") {
+          injectRoute({
+            pattern: "/",
+            entrypoint: "@mannisto/astro-i18n/detect/static",
+            prerender: true,
+          })
+        }
+
+        // Server mode — inject a server-side API route at /
+        // Requires an adapter for production builds
+        if (resolved.mode === "server") {
           injectRoute({
             pattern: "/",
             entrypoint: "@mannisto/astro-i18n/detect/server",
@@ -136,18 +106,19 @@ export const translations = ${JSON.stringify(translationData)}
           })
         }
 
-        // client detection — inject a prerendered static route at /
-        // works in both dev and production without an adapter
-        if (resolved.routing.detection === "client") {
+        // Hybrid mode — inject a server-side API route at /
+        // Only / is server-rendered, all locale pages remain static
+        if (resolved.mode === "hybrid") {
           injectRoute({
             pattern: "/",
-            entrypoint: "@mannisto/astro-i18n/detect/client",
-            prerender: true,
+            entrypoint: "@mannisto/astro-i18n/detect/hybrid",
+            prerender: false,
           })
         }
 
-        // autoPrefix middleware — only with server detection
-        if (resolved.routing.detection === "server" && resolved.routing.autoPrefix !== false) {
+        // Middleware — only registered for server mode
+        // Handles cookie updates and unprefixed URL redirects
+        if (resolved.mode === "server") {
           addMiddleware({
             entrypoint: "@mannisto/astro-i18n/middleware",
             order: "pre",
@@ -157,12 +128,8 @@ export const translations = ${JSON.stringify(translationData)}
         logger.info("i18n configured.")
       },
 
-      // ======================================================================
-      // astro:config:done
-      //
       // Validates and loads translation files only if translations are
       // configured. Runs after all integrations have finished setup.
-      // ======================================================================
       "astro:config:done": () => {
         if (resolved.translations) {
           translationData = Validate.translations(resolved)

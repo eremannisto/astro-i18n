@@ -37,9 +37,13 @@
       "types": "./dist/detect/server.d.ts",
       "default": "./dist/detect/server.js"
     },
-    "./detect/client": {
-      "types": "./dist/detect/client.d.ts",
-      "default": "./dist/detect/client.js"
+    "./detect/static": {
+      "types": "./dist/detect/static.d.ts",
+      "default": "./dist/detect/static.js"
+    },
+    "./detect/hybrid": {
+      "types": "./dist/detect/hybrid.d.ts",
+      "default": "./dist/detect/hybrid.js"
     }
   },
   "typesVersions": {
@@ -53,8 +57,11 @@
       "detect/server": [
         "./dist/detect/server.d.ts"
       ],
-      "detect/client": [
-        "./dist/detect/client.d.ts"
+      "detect/static": [
+        "./dist/detect/static.d.ts"
+      ],
+      "detect/hybrid": [
+        "./dist/detect/hybrid.d.ts"
       ]
     }
   },
@@ -75,14 +82,15 @@
     "astro": "^5.0.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.0.0",
-    "@playwright/test": "^1.50.0",
-    "@types/node": "^22.0.0",
-    "astro": "^5.17.3",
+    "@biomejs/biome": "^2.4.4",
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^22.19.12",
+    "astro": "^5.18.0",
     "prettier": "^3.8.1",
     "prettier-plugin-astro": "^0.14.1",
     "tsup": "^8.5.1",
-    "typescript": "^5.7.0",
-    "vitest": "^3.0.0"
-  }
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  },
+  "packageManager": "pnpm@10.30.3+sha512.c961d1e0a2d8e354ecaa5166b822516668b7f44cb5bd95122d590dd81922f606f5473b6d23ec4a5be05e7fcd18e8488d47d978bbe981872f1145d06e9a740017"
 }

@@ -10,13 +10,9 @@ export default defineConfig({
         { code: "en", name: "English", endonym: "English" },
         { code: "fi", name: "Finnish", endonym: "Suomi", phrase: "Suomeksi" },
       ],
-      routing: {
-        fallback: "en",
-        detection: "server",
-        autoPrefix: {
-          ignore: ["/keystatic"],
-        },
-      },
+      mode: "server",
+      defaultLocale: "en",
+      ignore: ["/keystatic"],
       translations: "./src/translations",
     }),
   ],

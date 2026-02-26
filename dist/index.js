@@ -21,21 +21,19 @@ var Validate = {
         throw new Error(`${NAME} Locale "${locale.code}" is missing an endonym.`);
       }
     }
-    if (config.routing?.fallback) {
+    if (config.defaultLocale) {
       const codes = config.locales.map((l) => l.code);
-      if (!codes.includes(config.routing.fallback)) {
-        throw new Error(
-          `${NAME} Fallback locale "${config.routing.fallback}" not found in locales.`
-        );
+      if (!codes.includes(config.defaultLocale)) {
+        throw new Error(`${NAME} defaultLocale "${config.defaultLocale}" not found in locales.`);
       }
     }
-    if (config.routing?.autoPrefix && config.routing?.detection !== "server") {
-      throw new Error(`${NAME} autoPrefix is only valid when detection is "server".`);
+    if (config.ignore && config.mode !== "server") {
+      throw new Error(`${NAME} "ignore" is only valid when mode is "server".`);
     }
   },
   /**
    * Validates that translation files exist for all locales and that all
-   * locales share the same keys as the fallback locale.
+   * locales share the same keys as the default locale.
    *
    * Returns the loaded translation data for use in the virtual module.
    */
@@ -48,11 +46,11 @@ var Validate = {
       }
       data[locale.code] = JSON.parse(fs.readFileSync(filePath, "utf-8"));
     }
-    const fallbackKeys = Object.keys(data[config.routing.fallback]);
+    const defaultKeys = Object.keys(data[config.defaultLocale]);
     for (const locale of config.locales) {
-      if (locale.code === config.routing.fallback) continue;
+      if (locale.code === config.defaultLocale) continue;
       const localeKeys = Object.keys(data[locale.code]);
-      for (const key of fallbackKeys) {
+      for (const key of defaultKeys) {
         if (!localeKeys.includes(key)) {
           throw new Error(`${NAME} Missing translation key "${key}" in ${locale.code}.json`);
         }
@@ -62,15 +60,15 @@ var Validate = {
   },
   /**
    * Validates that there is no conflicting src/pages/index.astro when
-   * detection is not "none". If one exists it would intercept the injected
+   * mode is not undefined. If one exists it would intercept the injected
    * detection route at /.
    */
-  index(root, detection) {
-    if (detection === "none") return;
+  index(root, mode) {
+    if (!mode) return;
     const indexPath = new URL("./src/pages/index.astro", root);
     if (fs.existsSync(indexPath)) {
       throw new Error(
-        `${NAME} Found conflicting src/pages/index.astro \u2014 remove it or set routing.detection to "none".`
+        `${NAME} Found conflicting src/pages/index.astro \u2014 remove it or leave mode unset.`
       );
     }
   }
@@ -80,18 +78,14 @@ var Validate = {
 var NAME2 = "@mannisto/astro-i18n";
 var DEFAULT_IGNORE = ["/_astro"];
 function resolveConfig(config) {
-  const fallback = config.routing?.fallback ?? config.locales[0].code;
-  const detection = config.routing?.detection ?? "client";
-  const autoPrefix = config.routing?.autoPrefix === false ? false : {
-    ignore: [
-      ...DEFAULT_IGNORE,
-      ...typeof config.routing?.autoPrefix === "object" ? config.routing.autoPrefix.ignore ?? [] : []
-    ]
-  };
+  const mode = config.mode ?? "static";
+  const defaultLocale = config.defaultLocale ?? config.locales[0].code;
+  const ignore = [...DEFAULT_IGNORE, ...config.ignore ?? []];
   return {
     locales: config.locales,
-    routing: { fallback, detection, autoPrefix },
-    // translations are optional — undefined means disabled
+    mode,
+    defaultLocale,
+    ignore,
     translations: config.translations
   };
 }
@@ -101,12 +95,8 @@ function i18n(config) {
   return {
     name: NAME2,
     hooks: {
-      // ======================================================================
-      // astro:config:setup
-      //
       // Validates config, registers the Vite virtual module plugin, injects
-      // detection routes, and registers the autoPrefix middleware.
-      // ======================================================================
+      // detection routes, and registers the middleware.
       "astro:config:setup": ({
         config: astroConfig,
         updateConfig,
@@ -120,7 +110,7 @@ function i18n(config) {
           );
         }
         Validate.config(config);
-        Validate.index(astroConfig.root, config.routing?.detection ?? "client");
+        Validate.index(astroConfig.root, config.mode);
         resolved = resolveConfig(config);
         updateConfig({
           vite: {
@@ -144,21 +134,28 @@ export const translations = ${JSON.stringify(translationData)}
             ]
           }
         });
-        if (resolved.routing.detection === "server") {
+        if (resolved.mode === "static") {
+          injectRoute({
+            pattern: "/",
+            entrypoint: "@mannisto/astro-i18n/detect/static",
+            prerender: true
+          });
+        }
+        if (resolved.mode === "server") {
           injectRoute({
             pattern: "/",
             entrypoint: "@mannisto/astro-i18n/detect/server",
             prerender: false
           });
         }
-        if (resolved.routing.detection === "client") {
+        if (resolved.mode === "hybrid") {
           injectRoute({
             pattern: "/",
-            entrypoint: "@mannisto/astro-i18n/detect/client",
-            prerender: true
+            entrypoint: "@mannisto/astro-i18n/detect/hybrid",
+            prerender: false
           });
         }
-        if (resolved.routing.detection === "server" && resolved.routing.autoPrefix !== false) {
+        if (resolved.mode === "server") {
           addMiddleware({
             entrypoint: "@mannisto/astro-i18n/middleware",
             order: "pre"
@@ -166,12 +163,8 @@ export const translations = ${JSON.stringify(translationData)}
         }
         logger.info("i18n configured.");
       },
-      // ======================================================================
-      // astro:config:done
-      //
       // Validates and loads translation files only if translations are
       // configured. Runs after all integrations have finished setup.
-      // ======================================================================
       "astro:config:done": () => {
         if (resolved.translations) {
           translationData = Validate.translations(resolved);
