@@ -1,6 +1,6 @@
 {
   "name": "@mannisto/astro-i18n",
-  "version": "1.0.0-alpha.3",
+  "version": "1.0.0-alpha.4",
   "description": "A flexible alternative to Astro's built-in i18n, with locale routing, detection, and translations for static and SSR sites.",
   "license": "MIT",
   "type": "module",
