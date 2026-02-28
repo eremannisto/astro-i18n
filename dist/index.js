@@ -80,7 +80,7 @@ var Validate = {
 
 // src/index.ts
 var NAME2 = "@mannisto/astro-i18n";
-var DEFAULT_IGNORE = ["/_astro/**"];
+var DEFAULT_IGNORE = ["/_astro"];
 function resolveConfig(config) {
   const mode = config.mode ?? "static";
   const defaultLocale = config.defaultLocale ?? config.locales[0].code;
