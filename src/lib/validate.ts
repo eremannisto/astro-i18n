@@ -3,6 +3,8 @@ import type { I18nConfig, ResolvedI18nConfig } from "../types"
 
 const NAME = "@mannisto/astro-i18n"
 
+const VALID_MODES = ["static", "server", "hybrid"] as const
+
 export const Validate = {
   /**
    * Validates the user-supplied config object.
@@ -27,7 +29,7 @@ export const Validate = {
       }
     }
 
-    // defaultLocale must be one of the defined locales
+    // One of the defined locales must be the defaultLocale
     if (config.defaultLocale) {
       const codes = config.locales.map((l) => l.code)
       if (!codes.includes(config.defaultLocale)) {
@@ -35,9 +37,16 @@ export const Validate = {
       }
     }
 
-    // ignore is only meaningful in server mode
-    if (config.ignore && config.mode !== "server") {
-      throw new Error(`${NAME} "ignore" is only valid when mode is "server".`)
+    // Mode must be one of the valid options if provided
+    if (config.mode && !VALID_MODES.includes(config.mode as (typeof VALID_MODES)[number])) {
+      throw new Error(
+        `${NAME} Invalid mode "${config.mode}". Must be one of: ${VALID_MODES.join(", ")}.`
+      )
+    }
+
+    // Ignore is only meaningful in server or hybrid mode
+    if (config.ignore && config.mode === "static") {
+      throw new Error(`${NAME} "ignore" is only valid when mode is "server" or "hybrid".`)
     }
   },
 
@@ -84,6 +93,26 @@ export const Validate = {
     const indexPath = new URL("./src/pages/index.astro", root)
     if (fs.existsSync(indexPath)) {
       throw new Error(`${NAME} Found conflicting src/pages/index.astro — remove it.`)
+    }
+  },
+
+  /**
+   * Validates that there is no conflicting catch-all route when mode is
+   * "hybrid". A [...path].astro or [...path].ts would intercept the injected
+   * redirect route.
+   */
+  catchall(root: URL, mode: string | undefined): void {
+    if (mode !== "hybrid") return
+    const candidates = [
+      new URL("./src/pages/[...path].astro", root),
+      new URL("./src/pages/[...path].ts", root),
+    ]
+    for (const candidate of candidates) {
+      if (fs.existsSync(candidate)) {
+        throw new Error(
+          `${NAME} Found conflicting ${candidate.pathname.split("/src/pages/")[1]} — remove it or switch to "server" mode.`
+        )
+      }
     }
   },
 }

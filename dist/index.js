@@ -1,6 +1,7 @@
 // src/lib/validate.ts
 import fs from "fs";
 var NAME = "@mannisto/astro-i18n";
+var VALID_MODES = ["static", "server", "hybrid"];
 var Validate = {
   /**
    * Validates the user-supplied config object.
@@ -27,8 +28,13 @@ var Validate = {
         throw new Error(`${NAME} defaultLocale "${config.defaultLocale}" not found in locales.`);
       }
     }
-    if (config.ignore && config.mode !== "server") {
-      throw new Error(`${NAME} "ignore" is only valid when mode is "server".`);
+    if (config.mode && !VALID_MODES.includes(config.mode)) {
+      throw new Error(
+        `${NAME} Invalid mode "${config.mode}". Must be one of: ${VALID_MODES.join(", ")}.`
+      );
+    }
+    if (config.ignore && config.mode === "static") {
+      throw new Error(`${NAME} "ignore" is only valid when mode is "server" or "hybrid".`);
     }
   },
   /**
@@ -68,6 +74,25 @@ var Validate = {
     const indexPath = new URL("./src/pages/index.astro", root);
     if (fs.existsSync(indexPath)) {
       throw new Error(`${NAME} Found conflicting src/pages/index.astro \u2014 remove it.`);
+    }
+  },
+  /**
+   * Validates that there is no conflicting catch-all route when mode is
+   * "hybrid". A [...path].astro or [...path].ts would intercept the injected
+   * redirect route.
+   */
+  catchall(root, mode) {
+    if (mode !== "hybrid") return;
+    const candidates = [
+      new URL("./src/pages/[...path].astro", root),
+      new URL("./src/pages/[...path].ts", root)
+    ];
+    for (const candidate of candidates) {
+      if (fs.existsSync(candidate)) {
+        throw new Error(
+          `${NAME} Found conflicting ${candidate.pathname.split("/src/pages/")[1]} \u2014 remove it or switch to "server" mode.`
+        );
+      }
     }
   }
 };
@@ -109,6 +134,7 @@ function i18n(config) {
         }
         Validate.config(config);
         Validate.index(astroConfig.root, config.mode);
+        Validate.catchall(astroConfig.root, config.mode);
         resolved = resolveConfig(config);
         updateConfig({
           vite: {
@@ -155,6 +181,11 @@ export const translations = ${JSON.stringify(translationData)}
           injectRoute({
             pattern: "/",
             entrypoint: "@mannisto/astro-i18n/detect/hybrid",
+            prerender: false
+          });
+          injectRoute({
+            pattern: "/[...path]",
+            entrypoint: "@mannisto/astro-i18n/redirect/hybrid",
             prerender: false
           });
         }

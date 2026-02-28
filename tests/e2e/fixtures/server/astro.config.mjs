@@ -12,8 +12,8 @@ export default defineConfig({
       ],
       mode: "server",
       defaultLocale: "en",
-      ignore: ["/keystatic"],
       translations: "./src/translations",
+      ignore: ["/keystatic"],
     }),
   ],
 })

@@ -1,9 +1,9 @@
 import { defineConfig } from "@playwright/test"
 
 const ports = {
-  server: 4321,
-  static: 4322,
-  hybrid: 4323,
+  server: 9999,
+  static: 9998,
+  hybrid: 9997,
 }
 
 export default defineConfig({

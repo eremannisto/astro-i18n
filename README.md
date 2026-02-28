@@ -6,19 +6,18 @@
 ![license](https://img.shields.io/badge/license-MIT-green)
 ![astro peer dependency](https://img.shields.io/npm/dependency-version/@mannisto/astro-i18n/peer/astro)
 
+A full-featured i18n integration for Astro. Handles locale detection, URL routing, redirects, cookie persistence, and flat-key translations — across static, server, and hybrid rendering modes.
+
 ## Installation
+
 ```bash
-# pnpm
-pnpm add @mannisto/astro-i18n
-
-# npm
 npm install @mannisto/astro-i18n
-
-# yarn
+pnpm add @mannisto/astro-i18n
 yarn add @mannisto/astro-i18n
 ```
 
 ## Setup
+
 ```typescript
 // astro.config.ts
 import { defineConfig } from "astro/config"
@@ -29,41 +28,48 @@ export default defineConfig({
     i18n({
       defaultLocale: "en",
       locales: [
-        { 
-          code: "en", 
-          name: "English", 
-          endonym: "English",
-          phrase: "In English"
-        },
-        { 
-          code: "fi", 
-          name: "Finnish", 
-          endonym: "Suomi", 
-          phrase: "Suomeksi" 
-        },
+        { code: "en", name: "English", endonym: "English", phrase: "In English" },
+        { code: "fi", name: "Finnish", endonym: "Suomi", phrase: "Suomeksi" },
       ],
-      mode: "server",
+      mode: "hybrid",
       translations: "./src/translations",
     }),
   ],
 })
 ```
 
+See the full [Configuration reference](#configuration) below.
+
 ## Modes
 
-| | `static` | `server` | `hybrid` |
-| --- | --- | --- | --- |
-| Pages built at | Build time | Request time | Build time |
-| Root redirect | Client-side JS | Server-side | Server-side |
-| Remembers locale via | localStorage | Cookie | Cookie |
-| Switching locale | ✅ | ✅ | ✅ `Locale.switch()` |
-| Redirects bare URLs | ❌ | ✅ | ❌ |
-| Needs a server | ❌ | ✅ | ✅ |
-| Flash on first visit | ⚠️ | ❌ | ❌ |
+The `mode` option controls how pages are rendered and how locale detection works.
+
+### Static
+
+Pages prebuilt at build time, locale detection at the root via a small inline script.
+
+- No server required — works on any CDN
+- First-time visitors may briefly see the unlocalized root URL before being redirected
+
+### Server
+
+Pages rendered on demand, middleware handles all locale detection and redirects.
+
+- Requires a Node adapter
+- No flash on first visit
+- Supports unprefixed URL rewrites (e.g. `/about` → `/en/about`)
+
+### Hybrid
+
+Recommended. Pages prerendered for performance, with a server-rendered catch-all route handling root detection and unprefixed URL redirects.
+
+- Requires a Node adapter
+- Best of both worlds: static performance with server-side locale handling
 
 ## Translations
 
-Create a `src/translations/` directory with a JSON file per locale:
+Create a `src/translations/` directory with one JSON file per locale. Files must use flat keys — no nesting.
+
 ```json
 {
   "nav.home": "Home",
@@ -72,9 +78,12 @@ Create a `src/translations/` directory with a JSON file per locale:
 }
 ```
 
-All locales must have the same keys as `defaultLocale`.
+All locale files must define the same set of keys.
 
 ## Usage
+
+### Pages
+
 ```astro
 ---
 import { Locale } from "@mannisto/astro-i18n/runtime"
@@ -101,31 +110,35 @@ const t = Locale.use(locale)
 </html>
 ```
 
-## API
+> **Note:** In `server` mode, omit `getStaticPaths` — pages are rendered on demand.
 
-### Locale access
-```typescript
-Locale.supported         // ["en", "fi"]
-Locale.defaultLocale     // "en"
-Locale.from(Astro.url)   // "fi" — derives locale from current URL
-Locale.get()             // all locale configs
-Locale.get("fi")         // { code: "fi", name: "Finnish", ... }
-```
+### Layout
 
-### Translations
-```typescript
-const t = Locale.use(locale)
-t("nav.home")            // "Home"
-```
+Your layout should derive the locale from the URL and sync it to a cookie on every page load. This ensures the correct locale is remembered across visits.
 
-### URL helpers
-```typescript
-Locale.url("fi")                     // "/fi/"
-Locale.url("fi", "/about")           // "/fi/about"
-Locale.url("fi", Astro.url.pathname) // "/fi/current-path"
+```astro
+---
+// src/layouts/Layout.astro
+import { Locale } from "@mannisto/astro-i18n/runtime"
+
+const locale = Locale.from(Astro.url)
+---
+
+<html lang={locale}>
+  <head>
+    <meta charset="UTF-8" />
+    <script is:inline define:vars={{ locale }}>
+      document.cookie = `locale=${locale}; path=/; SameSite=Lax; Max-Age=31536000`
+    </script>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
 ```
 
 ### Language switcher
+
 ```astro
 ---
 import { Locale } from "@mannisto/astro-i18n/runtime"
@@ -153,7 +166,10 @@ const locales = Locale.get()
 
 ### Middleware (server mode)
 
-Auto-registered in `server` mode. Redirects unprefixed URLs and keeps the cookie in sync. Can also be used manually:
+The middleware is auto-registered in `server` mode. It redirects unprefixed URLs (e.g. `/about` → `/en/about`) and keeps the locale cookie in sync.
+
+You can also compose it manually with other middleware:
+
 ```typescript
 // src/middleware.ts
 import { sequence } from "astro/middleware"
@@ -163,39 +179,67 @@ import { onRequest as myMiddleware } from "./my-middleware"
 export const onRequest = sequence(i18nMiddleware, myMiddleware)
 ```
 
+> **Note:** In `hybrid` mode, unprefixed URL redirects are handled by an injected catch-all route, not middleware.
+
+## API
+
+### Locale
+
+```typescript
+Locale.supported         // ["en", "fi"] — array of all locale codes
+Locale.defaultLocale     // "en"
+Locale.get()             // all locale configs
+Locale.get("fi")         // { code: "fi", name: "Finnish", endonym: "Suomi", ... }
+Locale.from(Astro.url)   // "fi" — derives current locale from URL
+```
+
+### Translations
+
+```typescript
+const t = Locale.use(locale)
+t("nav.home")            // "Home"
+```
+
+### URL helpers
+
+```typescript
+Locale.url("fi")                      // "/fi/"
+Locale.url("fi", "/about")            // "/fi/about"
+Locale.url("fi", Astro.url.pathname)  // "/fi/current-path"
+```
+
+### Switching locale
+
+```typescript
+Locale.switch("fi")  // sets cookie and redirects to the equivalent page in the new locale
+```
+
 ## Configuration
+
 ```typescript
 i18n({
-  // Required — list of supported locales
+  // List of supported locales (required)
   locales: [
     {
       code: "en",           // used in URLs: /en/about
-      name: "English",      // name in English
-      endonym: "English",   // name in its own language
-      phrase: "In English", // optional, for locale switchers
+      name: "English",      // display name in English
+      endonym: "English",   // display name in its own language
+      phrase: "In English", // optional — for use in locale switchers
     },
   ],
 
-  // Detection and rendering mode — default: "static"
-  mode: "static" | "server" | "hybrid",
-
-  // Locale to use when no preference is stored — default: first locale
+  // Locale to fall back to when no preference is stored — default: first locale
   defaultLocale: "en",
 
-  // Paths to bypass the middleware — server mode only
-  ignore: ["/keystatic", "/api"],
+  // Rendering and detection mode — default: "static"
+  mode: "static" | "server" | "hybrid",
 
-  // Path to translation files — omit to disable translations
+  // Path to translation JSON files — omit to disable translations
   translations: "./src/translations",
-})
-```
 
-## Development
-```bash
-pnpm install
-pnpm playwright install chromium
-pnpm test:unit
-pnpm test:e2e
+  // URL paths to bypass the middleware — server mode only
+  ignore: ["/keystatic", "/api"],
+})
 ```
 
 ## License

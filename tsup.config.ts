@@ -8,6 +8,7 @@ export default defineConfig({
     "detect/server": "src/detect/server.ts",
     "detect/static": "src/detect/static.ts",
     "detect/hybrid": "src/detect/hybrid.ts",
+    "redirect/hybrid": "src/redirect/hybrid.ts",
   },
   format: ["esm"],
   dts: true,

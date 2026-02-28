@@ -1,6 +1,6 @@
 {
   "name": "@mannisto/astro-i18n",
-  "version": "1.0.0-alpha.6",
+  "version": "1.0.0-alpha.7",
   "description": "A flexible alternative to Astro's built-in i18n, with locale routing, detection, and translations for static and SSR sites.",
   "license": "MIT",
   "type": "module",
@@ -44,6 +44,10 @@
     "./detect/hybrid": {
       "types": "./dist/detect/hybrid.d.ts",
       "default": "./dist/detect/hybrid.js"
+    },
+    "./redirect/hybrid": {
+      "types": "./dist/redirect/hybrid.d.ts",
+      "default": "./dist/redirect/hybrid.js"
     }
   },
   "typesVersions": {
@@ -62,6 +66,9 @@
       ],
       "detect/hybrid": [
         "./dist/detect/hybrid.d.ts"
+      ],
+      "redirect/hybrid": [
+        "./dist/redirect/hybrid.d.ts"
       ]
     }
   },
