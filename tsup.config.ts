@@ -12,5 +12,5 @@ export default defineConfig({
   format: ["esm"],
   dts: true,
   clean: true,
-  external: ["astro", "astro/middleware", "vite", "virtual:astro-i18n/config"],
+  external: ["astro", "astro/middleware", "vite", "virtual:astro-i18n/config", "picomatch"],
 })
