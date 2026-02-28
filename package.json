@@ -82,12 +82,14 @@
     "astro": "^5.0.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.0.0",
-    "@playwright/test": "^1.50.0",
-    "@types/node": "^22.0.0",
-    "astro": "^5.16.0",
-    "tsup": "^8.0.0",
-    "typescript": "^5.7.0",
-    "vitest": "^3.0.0"
+    "@biomejs/biome": "^2.4.4",
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^22.19.13",
+    "astro": "^5.18.0",
+    "prettier": "^3.8.1",
+    "prettier-plugin-astro": "^0.14.1",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
   }
 }
