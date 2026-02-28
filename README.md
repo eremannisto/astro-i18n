@@ -129,9 +129,8 @@ Locale.url("fi", Astro.url.pathname) // "/fi/current-path"
 ```astro
 ---
 import { Locale } from "@mannisto/astro-i18n/runtime"
-import type { LocaleConfig } from "@mannisto/astro-i18n"
 
-const locales = Locale.get() as LocaleConfig[]
+const locales = Locale.get()
 ---
 
 {locales.map((locale) => (
@@ -151,8 +150,6 @@ const locales = Locale.get() as LocaleConfig[]
   })
 </script>
 ```
-
-`Locale.switch(locale, path?)` updates the cookie then navigates. Works in all modes.
 
 ### Middleware (server mode)
 
