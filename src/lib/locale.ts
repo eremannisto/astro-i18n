@@ -16,6 +16,21 @@ function setCookie(name: string, value: string): void {
 }
 
 /**
+ * Returns locale configuration by code, or all locales if no code is provided.
+ * Throws if the specified locale code is not found.
+ */
+function getLocale(): LocaleConfig[]
+function getLocale(code: LocaleCode): LocaleConfig
+function getLocale(code?: LocaleCode): LocaleConfig | LocaleConfig[] {
+  if (code) {
+    const found = config.locales.find((l: LocaleConfig) => l.code === code)
+    if (!found) throw new Error(`${NAME} Locale "${code}" not found.`)
+    return found
+  }
+  return config.locales
+}
+
+/**
  * Locale utilities for managing i18n locale detection, URL generation, and switching.
  * Works with the virtual module configuration injected at build time.
  */
@@ -74,14 +89,7 @@ export const Locale = {
    * Returns locale configuration by code, or all locales if no code is provided.
    * Throws if the specified locale code is not found.
    */
-  get(code?: LocaleCode): LocaleConfig | LocaleConfig[] {
-    if (code) {
-      const found = config.locales.find((l: LocaleConfig) => l.code === code)
-      if (!found) throw new Error(`${NAME} Locale "${code}" not found.`)
-      return found
-    }
-    return config.locales
-  },
+  get: getLocale,
 
   /**
    * Returns a translation function for the specified locale.

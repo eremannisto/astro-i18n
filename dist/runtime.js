@@ -8,6 +8,14 @@ function setCookie(name, value) {
     document.cookie = `${name}=${value}; path=/; SameSite=Lax`;
   }
 }
+function getLocale(code) {
+  if (code) {
+    const found = config.locales.find((l) => l.code === code);
+    if (!found) throw new Error(`${NAME} Locale "${code}" not found.`);
+    return found;
+  }
+  return config.locales;
+}
 var Locale = {
   /**
    * Returns an array of all supported locale codes.
@@ -58,14 +66,7 @@ var Locale = {
    * Returns locale configuration by code, or all locales if no code is provided.
    * Throws if the specified locale code is not found.
    */
-  get(code) {
-    if (code) {
-      const found = config.locales.find((l) => l.code === code);
-      if (!found) throw new Error(`${NAME} Locale "${code}" not found.`);
-      return found;
-    }
-    return config.locales;
-  },
+  get: getLocale,
   /**
    * Returns a translation function for the specified locale.
    * The returned function accepts a translation key and returns the translated string.
