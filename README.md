@@ -267,7 +267,7 @@ i18n({
 
   // URL paths to bypass the middleware — server and hybrid mode only.
   // Supports exact prefixes and glob patterns.
-  ignore: ["/keystatic/**", "/api/**"],
+  ignore: ["/keystatic", "/api/keystatic"],
 })
 ```
 

@@ -3,7 +3,7 @@ import type { I18nConfig, ResolvedI18nConfig } from "./types"
 import { Validate } from "./lib/validate"
 
 const NAME = "@mannisto/astro-i18n"
-const DEFAULT_IGNORE = ["/_astro/**"]
+const DEFAULT_IGNORE = ["/_astro"]
 
 function resolveConfig(config: I18nConfig): ResolvedI18nConfig {
   const mode = config.mode ?? "static"

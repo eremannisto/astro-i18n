@@ -2,12 +2,17 @@
 import { defineMiddleware } from "astro/middleware";
 import pm from "picomatch";
 import { config } from "virtual:astro-i18n/config";
+function expandPattern(pattern) {
+  if (pattern.includes("*")) return [pattern];
+  return [pattern, `${pattern}/**`];
+}
 var onRequest = defineMiddleware(({ url, cookies, redirect, isPrerendered }, next) => {
   if (isPrerendered) return next();
   const pathname = url.pathname;
   const ignore = config.ignore ?? [];
   const codes = config.locales.map((l) => l.code);
-  if (ignore.some((pattern) => pm(pattern)(pathname))) return next();
+  const expanded = ignore.flatMap(expandPattern);
+  if (expanded.some((pattern) => pm(pattern)(pathname))) return next();
   if (pathname === "/") return next();
   const firstSegment = pathname.split("/")[1];
   if (codes.includes(firstSegment)) {
