@@ -7,7 +7,7 @@ const resolvedConfig = {
   ],
   mode: "server",
   defaultLocale: "en",
-  ignore: ["/_astro", "/keystatic"],
+  ignore: ["/_astro/**", "/keystatic/**"],
   translations: undefined,
 }
 
@@ -24,6 +24,7 @@ function createContext(pathname: string, cookieLocale?: string) {
 
   return {
     url: new URL(`https://example.com${pathname}`),
+    isPrerendered: false,
     cookies: {
       get: (key: string) => (cookies.has(key) ? { value: cookies.get(key)! } : undefined),
       set: (key: string, value: string) => cookies.set(key, value),
@@ -49,8 +50,16 @@ describe("onRequest (i18n middleware)", () => {
     expect((await run("/_astro/chunk.js")).status).toBe(200)
   })
 
-  it("passes through /keystatic", async () => {
+  it("passes through /keystatic root", async () => {
+    expect((await run("/keystatic")).status).toBe(200)
+  })
+
+  it("passes through /keystatic sub-paths", async () => {
     expect((await run("/keystatic/dashboard")).status).toBe(200)
+  })
+
+  it("passes through /keystatic deeply nested paths", async () => {
+    expect((await run("/keystatic/collection/posts/create")).status).toBe(200)
   })
 
   it("passes through root /", async () => {

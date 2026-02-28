@@ -265,8 +265,9 @@ i18n({
   // Path to translation JSON files — omit to disable translations
   translations: "./src/translations",
 
-  // URL paths to bypass the middleware — server and hybrid mode only
-  ignore: ["/keystatic", "/api"],
+  // URL paths to bypass the middleware — server and hybrid mode only.
+  // Supports exact prefixes and glob patterns.
+  ignore: ["/keystatic/**", "/api/**"],
 })
 ```
 
