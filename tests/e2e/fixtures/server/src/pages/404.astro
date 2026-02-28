@@ -4,16 +4,14 @@ import { Locale } from "@mannisto/astro-i18n/runtime"
 export const prerender = false
 
 const locale = Locale.from(Astro.url)
-const t = Locale.use(locale)
 ---
 
 <html lang={locale}>
   <head>
     <meta charset="UTF-8" />
-    <title>{t("nav.about")}</title>
+    <title>404</title>
   </head>
   <body>
-    <h1 data-testid="title">{t("nav.about")}</h1>
-    <p data-testid="copyright">{t("footer.copyright")}</p>
+    <h1 data-testid="not-found">404</h1>
   </body>
 </html>

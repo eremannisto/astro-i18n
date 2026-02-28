@@ -51,14 +51,11 @@ test.describe("hybrid mode — root detection", () => {
 
   test("updates cookie via Locale.switch and persists on return visit to /", async ({ page }) => {
     await page.context().clearCookies()
-    // First visit — defaults to en
     await page.goto("/")
     await expect(page).toHaveURL("/en/")
-    // Simulate Locale.switch("fi") updating the cookie client-side
     await page.evaluate(() => {
       document.cookie = "locale=fi; path=/; max-age=31536000; SameSite=Lax; Secure"
     })
-    // Return to / — should redirect to fi
     await page.goto("/")
     await expect(page).toHaveURL("/fi/")
   })
@@ -91,5 +88,37 @@ test.describe("hybrid mode — unprefixed redirect", () => {
     await page.context().clearCookies()
     const response = await page.request.get("/keystatic")
     expect(response.status()).not.toBe(302)
+  })
+})
+
+test.describe("hybrid mode — 404 handling", () => {
+  test("renders 404 for unknown unprefixed path after redirect", async ({ page }) => {
+    await page.context().clearCookies()
+    await page.goto("/banana")
+    await expect(page).toHaveURL("/en/banana")
+    await expect(page.getByTestId("not-found")).toHaveText("404")
+  })
+
+  test("renders 404 for unknown unprefixed path with cookie locale", async ({ page }) => {
+    await page
+      .context()
+      .addCookies([{ name: "locale", value: "fi", domain: "localhost", path: "/" }])
+    await page.goto("/banana")
+    await expect(page).toHaveURL("/fi/banana")
+    await expect(page.getByTestId("not-found")).toHaveText("404")
+  })
+
+  test("renders 404 for unknown locale-prefixed path", async ({ page }) => {
+    await page.context().clearCookies()
+    await page.goto("/en/banana")
+    await expect(page).toHaveURL("/en/banana")
+    await expect(page.getByTestId("not-found")).toHaveText("404")
+  })
+
+  test("renders 404 for unknown fi-prefixed path", async ({ page }) => {
+    await page.context().clearCookies()
+    await page.goto("/fi/banana")
+    await expect(page).toHaveURL("/fi/banana")
+    await expect(page.getByTestId("not-found")).toHaveText("404")
   })
 })
