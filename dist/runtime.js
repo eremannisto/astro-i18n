@@ -11,22 +11,19 @@ function setCookie(name, value) {
 var Locale = {
   /**
    * Returns an array of all supported locale codes.
-   * @returns Array of locale codes configured in the i18n config
    */
   get supported() {
     return config.locales.map((l) => l.code);
   },
   /**
-   * Returns the default locale code.
-   * @returns The default locale code configured in the i18n config
+   * Returns the default locale code from the configuration.
    */
   get defaultLocale() {
     return config.defaultLocale;
   },
   /**
-   * Extracts the locale code from a URL by checking the first path segment.
-   * @param url - The URL to extract the locale from
-   * @returns The locale code if found in the URL, otherwise the default locale
+   * Extracts the locale code from a URL pathname.
+   * Falls back to the default locale if no valid locale prefix is found.
    */
   from(url) {
     const first = url.pathname.split("/")[1];
@@ -34,11 +31,8 @@ var Locale = {
     return codes.includes(first) ? first : config.defaultLocale;
   },
   /**
-   * Builds a localized URL path for the given locale.
-   * Strips any existing locale prefix from the path before adding the new one.
-   * @param locale - The target locale code
-   * @param path - The path to localize (defaults to "/")
-   * @returns The localized URL path (e.g., "/en/about")
+   * Generates a locale-prefixed URL path.
+   * Strips any existing locale prefix and prepends the specified locale.
    */
   url(locale, path = "/") {
     const codes = config.locales.map((l) => l.code);
@@ -48,10 +42,9 @@ var Locale = {
     return stripped === "/" ? `/${locale}/` : `/${locale}${stripped}`;
   },
   /**
-   * Switches to a different locale by setting a cookie and navigating to the localized URL.
-   * Can only be called in the browser (client-side).
-   * @param locale - The locale code to switch to
-   * @param path - Optional path to navigate to (defaults to current pathname)
+   * Switches the current locale and navigates to the new locale URL.
+   * Sets a cookie to persist the preference and redirects the browser.
+   * Only available in browser context.
    */
   switch(locale, path) {
     if (typeof window === "undefined") {
@@ -62,10 +55,8 @@ var Locale = {
     window.location.assign(Locale.url(locale, path ?? window.location.pathname));
   },
   /**
-   * Gets locale configuration by code, or all locale configurations if no code is provided.
-   * @param code - Optional locale code to look up
-   * @returns A single LocaleConfig if code is provided, or an array of all LocaleConfigs
-   * @throws Error if the specified locale code is not found
+   * Returns locale configuration by code, or all locales if no code is provided.
+   * Throws if the specified locale code is not found.
    */
   get(code) {
     if (code) {
@@ -77,10 +68,8 @@ var Locale = {
   },
   /**
    * Returns a translation function for the specified locale.
-   * The returned function takes a translation key and returns the translated string.
-   * @param locale - The locale code to get translations for
-   * @returns A function that accepts a translation key and returns the translated string
-   * @throws Error if no translations are found for the locale or if a key is missing
+   * The returned function accepts a translation key and returns the translated string.
+   * Throws if translations are not configured or if a key is missing.
    */
   use(locale) {
     if (!config.translations) {
