@@ -3,6 +3,7 @@ import node from "@astrojs/node"
 import i18n from "@mannisto/astro-i18n"
 
 export default defineConfig({
+  mode: "server",
   adapter: node({ mode: "standalone" }),
   integrations: [
     i18n({

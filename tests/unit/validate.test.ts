@@ -96,15 +96,3 @@ describe("Validate.index", () => {
     expect(() => Validate.index(new URL("file:///fake/"), undefined)).not.toThrow()
   })
 })
-
-describe("Validate.catchall", () => {
-  it("does nothing if mode is not hybrid", () => {
-    expect(() => Validate.catchall(new URL("file:///fake/"), "static")).not.toThrow()
-    expect(() => Validate.catchall(new URL("file:///fake/"), "server")).not.toThrow()
-    expect(() => Validate.catchall(new URL("file:///fake/"), undefined)).not.toThrow()
-  })
-
-  it("does nothing if no conflicting catch-all exists in hybrid mode", () => {
-    expect(() => Validate.catchall(new URL("file:///fake/"), "hybrid")).not.toThrow()
-  })
-})

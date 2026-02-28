@@ -11,8 +11,8 @@ A full-featured i18n integration for Astro. Handles locale detection, URL routin
 ## Installation
 
 ```bash
-npm install @mannisto/astro-i18n
 pnpm add @mannisto/astro-i18n
+npm install @mannisto/astro-i18n
 yarn add @mannisto/astro-i18n
 ```
 
@@ -42,8 +42,6 @@ See the full [Configuration reference](#configuration) below.
 
 ## Modes
 
-The `mode` option controls how pages are rendered and how locale detection works.
-
 ### Static
 
 Pages prebuilt at build time, locale detection at the root via a small inline script.
@@ -59,9 +57,9 @@ Pages rendered on demand, middleware handles all locale detection and redirects.
 - No flash on first visit
 - Supports unprefixed URL rewrites (e.g. `/about` → `/en/about`)
 
-### Hybrid
+### Hybrid (Recommended)
 
-Recommended. Pages prerendered for performance, with a server-rendered catch-all route handling root detection and unprefixed URL redirects.
+Pages prerendered for performance, with a server-rendered catch-all route handling root detection and unprefixed URL redirects.
 
 - Requires a Node adapter
 - Best of both worlds: static performance with server-side locale handling
@@ -84,14 +82,14 @@ All locale files must define the same set of keys.
 
 ### Pages
 
+In `static` and `hybrid` mode, use `getStaticPaths` to prerender pages for each locale:
+
 ```astro
 ---
 import { Locale } from "@mannisto/astro-i18n/runtime"
 
 export const getStaticPaths = () => {
-  return Locale.supported.map((code) => (
-    { params: { locale: code } }
-  ))
+  return Locale.supported.map((code) => ({ params: { locale: code } }))
 }
 
 const locale = Locale.from(Astro.url)
@@ -110,11 +108,24 @@ const t = Locale.use(locale)
 </html>
 ```
 
-> **Note:** In `server` mode, omit `getStaticPaths` — pages are rendered on demand.
+In `server` mode, omit `getStaticPaths` and opt out of prerendering explicitly:
+
+```astro
+---
+export const prerender = false
+
+import { Locale } from "@mannisto/astro-i18n/runtime"
+
+const locale = Locale.from(Astro.url)
+const t = Locale.use(locale)
+---
+```
+
+Without `prerender = false`, Astro will treat dynamic routes as static and throw a `GetStaticPathsRequired` error even in server mode.
 
 ### Layout
 
-Your layout should derive the locale from the URL and sync it to a cookie on every page load. This ensures the correct locale is remembered across visits.
+Your layout should derive the locale from the URL and sync it to a cookie on every page load. This ensures the correct locale is remembered across visits and that 404 pages detect the locale correctly.
 
 ```astro
 ---
@@ -135,6 +146,25 @@ const locale = Locale.from(Astro.url)
     <slot />
   </body>
 </html>
+```
+
+### 404 pages
+
+Create a `src/pages/404.astro` at the root. In `hybrid` and `server` mode, unknown paths are redirected to their locale-prefixed equivalent before the 404 renders (e.g. `/banana` → `/en/banana`), so `Locale.from(Astro.url)` always returns the correct locale. In `static` mode, `Locale.from` falls back to `defaultLocale` for bare unprefixed paths, but locale-prefixed paths like `/fi/banana` still resolve correctly.
+
+```astro
+---
+import { Locale } from "@mannisto/astro-i18n/runtime"
+import Layout from "@layouts/Layout.astro"
+
+const locale = Locale.from(Astro.url)
+const t = Locale.use(locale)
+---
+
+<Layout title={t("error.title")}>
+  <h1>{t("error.title")}</h1>
+  <p>{t("error.description")}</p>
+</Layout>
 ```
 
 ### Language switcher
@@ -164,9 +194,9 @@ const locales = Locale.get()
 </script>
 ```
 
-### Middleware (server mode)
+### Middleware
 
-The middleware is auto-registered in `server` mode. It redirects unprefixed URLs (e.g. `/about` → `/en/about`) and keeps the locale cookie in sync.
+The middleware is auto-registered in `server` and `hybrid` mode. It redirects unprefixed URLs (e.g. `/about` → `/en/about`), keeps the locale cookie in sync, and automatically skips prerendered pages to avoid warnings about unavailable request headers.
 
 You can also compose it manually with other middleware:
 
@@ -179,39 +209,37 @@ import { onRequest as myMiddleware } from "./my-middleware"
 export const onRequest = sequence(i18nMiddleware, myMiddleware)
 ```
 
-> **Note:** In `hybrid` mode, unprefixed URL redirects are handled by an injected catch-all route, not middleware.
-
 ## API
 
 ### Locale
 
 ```typescript
-Locale.supported         // ["en", "fi"] — array of all locale codes
-Locale.defaultLocale     // "en"
-Locale.get()             // all locale configs
-Locale.get("fi")         // { code: "fi", name: "Finnish", endonym: "Suomi", ... }
-Locale.from(Astro.url)   // "fi" — derives current locale from URL
+Locale.supported       // ["en", "fi"] — array of all locale codes
+Locale.defaultLocale   // "en"
+Locale.get()           // all locale configs
+Locale.get("fi")       // { code: "fi", name: "Finnish", endonym: "Suomi", ... }
+Locale.from(Astro.url) // "fi" — derives current locale from URL
 ```
 
 ### Translations
 
 ```typescript
 const t = Locale.use(locale)
-t("nav.home")            // "Home"
+t("nav.home") // "Home"
 ```
 
 ### URL helpers
 
 ```typescript
-Locale.url("fi")                      // "/fi/"
-Locale.url("fi", "/about")            // "/fi/about"
-Locale.url("fi", Astro.url.pathname)  // "/fi/current-path"
+Locale.url("fi")                     // "/fi/"
+Locale.url("fi", "/about")           // "/fi/about"
+Locale.url("fi", Astro.url.pathname) // "/fi/current-path"
 ```
 
 ### Switching locale
 
 ```typescript
-Locale.switch("fi")  // sets cookie and redirects to the equivalent page in the new locale
+Locale.switch("fi") // sets cookie and navigates to the equivalent page in the new locale
 ```
 
 ## Configuration
@@ -237,10 +265,14 @@ i18n({
   // Path to translation JSON files — omit to disable translations
   translations: "./src/translations",
 
-  // URL paths to bypass the middleware — server mode only
+  // URL paths to bypass the middleware — server and hybrid mode only
   ignore: ["/keystatic", "/api"],
 })
 ```
+
+## Development
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup, testing, and publishing instructions.
 
 ## License
 
