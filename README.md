@@ -52,14 +52,16 @@ export default defineConfig({
 ## Modes
 
 | | `static` | `server` | `hybrid` |
-| --- | --- | --- | --- |
-| Pages built at | Build time | Request time | Build time |
-| Root redirect | Client-side JS | Server-side | Server-side |
-| Remembers locale via | localStorage | Cookie | Cookie |
-| Switching locale | ✅ | ✅ | ✅ `Locale.switch()` |
-| Redirects bare URLs | ❌ | ✅ | ❌ |
+| --- | :---: | :---: | :---: |
+| Pages built at | Build time | Request time | Mix of both |
+| Root redirect | Client-side | Server-side | Server-side |
+| Redirects `/about` → `/en/about` | ❌ | ✅ | ❌ |
 | Needs a server | ❌ | ✅ | ✅ |
-| Flash on first visit | ⚠️ | ❌ | ❌ |
+| Brief flash on first visit to `/` | ✅ | ❌ | ❌ |
+
+- **static** — Pages prerendered at build time. Root detection via inline script. No server required, works on any CDN.
+- **server** — Pages rendered on demand. Middleware handles all locale detection and redirects. Requires a Node adapter.
+- **hybrid** — Pages prerendered by default, with opt-in SSR per route. Root detection is server-side. Requires a Node adapter.
 
 ## Translations
 
@@ -151,9 +153,9 @@ const locales = Locale.get()
 </script>
 ```
 
-### Middleware (server mode)
+### Middleware (server and hybrid mode)
 
-Auto-registered in `server` mode. Redirects unprefixed URLs and keeps the cookie in sync. Can also be used manually:
+Auto-registered in `server` and `hybrid` modes. Redirects unprefixed URLs and keeps the locale cookie in sync. Can also be used manually:
 ```typescript
 // src/middleware.ts
 import { sequence } from "astro/middleware"
@@ -182,7 +184,7 @@ i18n({
   // Locale to use when no preference is stored — default: first locale
   defaultLocale: "en",
 
-  // Paths to bypass the middleware — server mode only
+  // Paths to bypass the middleware — server and hybrid mode only
   ignore: ["/keystatic", "/api"],
 
   // Path to translation files — omit to disable translations
@@ -191,12 +193,8 @@ i18n({
 ```
 
 ## Development
-```bash
-pnpm install
-pnpm playwright install chromium
-pnpm test:unit
-pnpm test:e2e
-```
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup, testing, and publishing instructions.
 
 ## License
 

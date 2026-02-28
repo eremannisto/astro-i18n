@@ -27,23 +27,24 @@ test.describe("static mode — locale pages", () => {
 })
 
 test.describe("static mode — root detection", () => {
-  test("redirects / to defaultLocale when no localStorage", async ({ page }) => {
-    await page.goto("/en/")
-    await page.evaluate(() => localStorage.clear())
+  test("redirects / to defaultLocale when no cookie", async ({ page }) => {
+    await page.context().clearCookies()
     await page.goto("/")
     await expect(page).toHaveURL("/en/")
   })
 
-  test("redirects / to stored localStorage locale", async ({ page }) => {
-    await page.goto("/en/")
-    await page.evaluate(() => localStorage.setItem("locale", "fi"))
+  test("redirects / to stored cookie locale", async ({ page }) => {
+    await page
+      .context()
+      .addCookies([{ name: "locale", value: "fi", domain: "localhost", path: "/" }])
     await page.goto("/")
     await expect(page).toHaveURL("/fi/")
   })
 
-  test("redirects / to defaultLocale when localStorage has unknown locale", async ({ page }) => {
-    await page.goto("/en/")
-    await page.evaluate(() => localStorage.setItem("locale", "de"))
+  test("redirects / to defaultLocale when cookie has unknown locale", async ({ page }) => {
+    await page
+      .context()
+      .addCookies([{ name: "locale", value: "de", domain: "localhost", path: "/" }])
     await page.goto("/")
     await expect(page).toHaveURL("/en/")
   })

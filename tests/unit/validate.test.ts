@@ -39,17 +39,26 @@ describe("Validate.config", () => {
     ).toThrow('defaultLocale "fi" not found in locales.')
   })
 
-  it("throws if ignore is used with non-server mode", () => {
+  it("throws if mode is invalid", () => {
+    expect(() =>
+      Validate.config({
+        locales: [{ code: "en", name: "English", endonym: "English" }],
+        mode: "client" as never,
+      })
+    ).toThrow('Invalid mode "client". Must be one of: static, server, hybrid.')
+  })
+
+  it("throws if ignore is used with static mode", () => {
     expect(() =>
       Validate.config({
         locales: [{ code: "en", name: "English", endonym: "English" }],
         mode: "static",
         ignore: ["/keystatic"],
       })
-    ).toThrow('"ignore" is only valid when mode is "server".')
+    ).toThrow('"ignore" is only valid when mode is "server" or "hybrid".')
   })
 
-  it("passes for a valid config", () => {
+  it("passes for a valid server config with ignore", () => {
     expect(() =>
       Validate.config({
         locales: [
@@ -58,6 +67,16 @@ describe("Validate.config", () => {
         ],
         mode: "server",
         defaultLocale: "en",
+        ignore: ["/keystatic"],
+      })
+    ).not.toThrow()
+  })
+
+  it("passes for a valid hybrid config with ignore", () => {
+    expect(() =>
+      Validate.config({
+        locales: [{ code: "en", name: "English", endonym: "English" }],
+        mode: "hybrid",
         ignore: ["/keystatic"],
       })
     ).not.toThrow()

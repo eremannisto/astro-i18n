@@ -1,6 +1,7 @@
 // src/lib/validate.ts
 import fs from "fs";
 var NAME = "@mannisto/astro-i18n";
+var VALID_MODES = ["static", "server", "hybrid"];
 var Validate = {
   /**
    * Validates the user-supplied config object.
@@ -27,8 +28,13 @@ var Validate = {
         throw new Error(`${NAME} defaultLocale "${config.defaultLocale}" not found in locales.`);
       }
     }
-    if (config.ignore && config.mode !== "server") {
-      throw new Error(`${NAME} "ignore" is only valid when mode is "server".`);
+    if (config.mode && !VALID_MODES.includes(config.mode)) {
+      throw new Error(
+        `${NAME} Invalid mode "${config.mode}". Must be one of: ${VALID_MODES.join(", ")}.`
+      );
+    }
+    if (config.ignore && config.mode === "static") {
+      throw new Error(`${NAME} "ignore" is only valid when mode is "server" or "hybrid".`);
     }
   },
   /**
