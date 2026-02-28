@@ -44,6 +44,10 @@
     "./detect/hybrid": {
       "types": "./dist/detect/hybrid.d.ts",
       "default": "./dist/detect/hybrid.js"
+    },
+    "./redirect/hybrid": {
+      "types": "./dist/redirect/hybrid.d.ts",
+      "default": "./dist/redirect/hybrid.js"
     }
   },
   "typesVersions": {
@@ -62,6 +66,9 @@
       ],
       "detect/hybrid": [
         "./dist/detect/hybrid.d.ts"
+      ],
+      "redirect/hybrid": [
+        "./dist/redirect/hybrid.d.ts"
       ]
     }
   },

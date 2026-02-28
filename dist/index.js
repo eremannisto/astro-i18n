@@ -75,6 +75,25 @@ var Validate = {
     if (fs.existsSync(indexPath)) {
       throw new Error(`${NAME} Found conflicting src/pages/index.astro \u2014 remove it.`);
     }
+  },
+  /**
+   * Validates that there is no conflicting catch-all route when mode is
+   * "hybrid". A [...path].astro or [...path].ts would intercept the injected
+   * redirect route.
+   */
+  catchall(root, mode) {
+    if (mode !== "hybrid") return;
+    const candidates = [
+      new URL("./src/pages/[...path].astro", root),
+      new URL("./src/pages/[...path].ts", root)
+    ];
+    for (const candidate of candidates) {
+      if (fs.existsSync(candidate)) {
+        throw new Error(
+          `${NAME} Found conflicting ${candidate.pathname.split("/src/pages/")[1]} \u2014 remove it or switch to "server" mode.`
+        );
+      }
+    }
   }
 };
 
@@ -115,6 +134,7 @@ function i18n(config) {
         }
         Validate.config(config);
         Validate.index(astroConfig.root, config.mode);
+        Validate.catchall(astroConfig.root, config.mode);
         resolved = resolveConfig(config);
         updateConfig({
           vite: {
@@ -161,6 +181,11 @@ export const translations = ${JSON.stringify(translationData)}
           injectRoute({
             pattern: "/",
             entrypoint: "@mannisto/astro-i18n/detect/hybrid",
+            prerender: false
+          });
+          injectRoute({
+            pattern: "/[...path]",
+            entrypoint: "@mannisto/astro-i18n/redirect/hybrid",
             prerender: false
           });
         }

@@ -60,7 +60,7 @@ export type I18nConfig = {
 
   /**
    * URL path prefixes that should bypass the middleware.
-   * Only applies in "server" mode.
+   * Only applies in "server" or "hybrid" mode.
    * Always includes "/_astro" internally.
    *
    * @example ["/keystatic", "/api"]

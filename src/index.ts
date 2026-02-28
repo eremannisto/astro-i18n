@@ -45,6 +45,7 @@ export default function i18n(config: I18nConfig): AstroIntegration {
 
         Validate.config(config)
         Validate.index(astroConfig.root, config.mode)
+        Validate.catchall(astroConfig.root, config.mode)
 
         resolved = resolveConfig(config)
 
@@ -94,12 +95,18 @@ export const translations = ${JSON.stringify(translationData)}
           })
         }
 
-        // Hybrid mode — inject a server-side route at /
-        // Only / is server-rendered, all locale pages remain static
+        // Hybrid mode — inject a server-side route at / and a catch-all
+        // redirect for unprefixed paths. Only these routes are server-rendered,
+        // all locale pages remain static.
         if (resolved.mode === "hybrid") {
           injectRoute({
             pattern: "/",
             entrypoint: "@mannisto/astro-i18n/detect/hybrid",
+            prerender: false,
+          })
+          injectRoute({
+            pattern: "/[...path]",
+            entrypoint: "@mannisto/astro-i18n/redirect/hybrid",
             prerender: false,
           })
         }

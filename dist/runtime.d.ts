@@ -1,4 +1,4 @@
-import { L as LocaleCode, a as LocaleConfig } from './types-DA5S96LP.js';
+import { L as LocaleCode, a as LocaleConfig } from './types-Ji5In9Kk.js';
 
 /**
  * Returns locale configuration by code, or all locales if no code is provided.

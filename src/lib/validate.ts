@@ -95,4 +95,24 @@ export const Validate = {
       throw new Error(`${NAME} Found conflicting src/pages/index.astro — remove it.`)
     }
   },
+
+  /**
+   * Validates that there is no conflicting catch-all route when mode is
+   * "hybrid". A [...path].astro or [...path].ts would intercept the injected
+   * redirect route.
+   */
+  catchall(root: URL, mode: string | undefined): void {
+    if (mode !== "hybrid") return
+    const candidates = [
+      new URL("./src/pages/[...path].astro", root),
+      new URL("./src/pages/[...path].ts", root),
+    ]
+    for (const candidate of candidates) {
+      if (fs.existsSync(candidate)) {
+        throw new Error(
+          `${NAME} Found conflicting ${candidate.pathname.split("/src/pages/")[1]} — remove it or switch to "server" mode.`
+        )
+      }
+    }
+  },
 }

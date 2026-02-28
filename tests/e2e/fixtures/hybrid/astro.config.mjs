@@ -13,6 +13,7 @@ export default defineConfig({
       mode: "hybrid",
       defaultLocale: "en",
       translations: "./src/translations",
+      ignore: ["/keystatic"],
     }),
   ],
 })
