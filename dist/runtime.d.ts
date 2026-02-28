@@ -1,6 +1,12 @@
 import { L as LocaleCode, a as LocaleConfig } from './types-DA5S96LP.js';
 
 /**
+ * Returns locale configuration by code, or all locales if no code is provided.
+ * Throws if the specified locale code is not found.
+ */
+declare function getLocale(): LocaleConfig[];
+declare function getLocale(code: LocaleCode): LocaleConfig;
+/**
  * Locale utilities for managing i18n locale detection, URL generation, and switching.
  * Works with the virtual module configuration injected at build time.
  */
@@ -33,7 +39,7 @@ declare const Locale: {
      * Returns locale configuration by code, or all locales if no code is provided.
      * Throws if the specified locale code is not found.
      */
-    get(code?: LocaleCode): LocaleConfig | LocaleConfig[];
+    get: typeof getLocale;
     /**
      * Returns a translation function for the specified locale.
      * The returned function accepts a translation key and returns the translated string.
