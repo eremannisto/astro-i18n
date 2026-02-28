@@ -1,94 +1,52 @@
-import * as astro from 'astro';
 import { L as LocaleCode, a as LocaleConfig } from './types-DA5S96LP.js';
 
-/**
- * Primary public API for locale access, translations, and middleware.
- *
- * Always import from the runtime subpath in pages and components:
- * @example
- * import { Locale } from "@mannisto/astro-i18n/runtime"
- */
 declare const Locale: {
     /**
-     * All supported locale codes.
-     * @example ["en", "fi"]
+     * Returns an array of all supported locale codes.
+     * @returns Array of locale codes configured in the i18n config
      */
     readonly supported: LocaleCode[];
     /**
-     * The default locale code.
-     * @example "en"
+     * Returns the default locale code.
+     * @returns The default locale code configured in the i18n config
      */
     readonly defaultLocale: LocaleCode;
     /**
-     * Derives the current locale from the given URL.
-     * Falls back to defaultLocale if no supported locale is found in the path.
-     *
-     * @example
-     * const locale = Locale.from(Astro.url)
+     * Extracts the locale code from a URL by checking the first path segment.
+     * @param url - The URL to extract the locale from
+     * @returns The locale code if found in the URL, otherwise the default locale
      */
     from(url: URL): LocaleCode;
     /**
-     * Returns the config for all locales, or a single locale by code.
-     * Throws if the requested code is not found.
-     *
-     * @example
-     * Locale.get()       // All locales
-     * Locale.get("fi")   // Single locale
-     */
-    get(code?: LocaleCode): LocaleConfig | LocaleConfig[];
-    /**
-     * Builds a locale-prefixed URL from a locale code and an optional path.
-     * If no path is provided, returns the locale root.
-     *
-     * @example
-     * Locale.url("fi")                     // "/fi/"
-     * Locale.url("fi", "/about")           // "/fi/about"
-     * Locale.url("fi", Astro.url.pathname) // "/fi/current-path"
+     * Builds a localized URL path for the given locale.
+     * Strips any existing locale prefix from the path before adding the new one.
+     * @param locale - The target locale code
+     * @param path - The path to localize (defaults to "/")
+     * @returns The localized URL path (e.g., "/en/about")
      */
     url(locale: LocaleCode, path?: string): string;
     /**
-     * Switches the current locale client-side. Updates localStorage and
-     * cookie so the preference persists across visits, then navigates to
-     * the equivalent page in the new locale.
-     *
-     * Browser-only — logs a warning if called on the server.
-     *
-     * Updates both localStorage (static mode) and cookie (server/hybrid mode)
-     * so it works correctly regardless of which mode the site uses.
-     *
-     * @example
-     * Locale.switch("fi")           // Navigate to /fi/ from current page
-     * Locale.switch("fi", "/about") // Navigate to /fi/about
+     * Switches to a different locale by setting a cookie and navigating to the localized URL.
+     * Can only be called in the browser (client-side).
+     * @param locale - The locale code to switch to
+     * @param path - Optional path to navigate to (defaults to current pathname)
      */
     switch(locale: LocaleCode, path?: string): void;
     /**
-     * Binds a locale and returns a translation function for that locale.
-     *
-     * Call once at the top of your page with the current locale, then use
-     * the returned function to look up keys by name.
-     *
-     * Warns if translations are not configured.
-     * Throws if the locale or key is not found.
-     *
-     * @example
-     * const t = Locale.use(locale)
-     * t("nav.home")  // "Home"
+     * Gets locale configuration by code, or all locale configurations if no code is provided.
+     * @param code - Optional locale code to look up
+     * @returns A single LocaleConfig if code is provided, or an array of all LocaleConfigs
+     * @throws Error if the specified locale code is not found
+     */
+    get(code?: LocaleCode): LocaleConfig | LocaleConfig[];
+    /**
+     * Returns a translation function for the specified locale.
+     * The returned function takes a translation key and returns the translated string.
+     * @param locale - The locale code to get translations for
+     * @returns A function that accepts a translation key and returns the translated string
+     * @throws Error if no translations are found for the locale or if a key is missing
      */
     use(locale: LocaleCode): (key: string) => string;
-    /**
-     * Middleware that redirects requests without a locale prefix to the
-     * correct locale based on the user's cookie, and updates the cookie
-     * when the user navigates to a new locale.
-     *
-     * Auto-registered in server mode. Can also be used manually via
-     * Astro's sequence() helper.
-     *
-     * @example
-     * import { sequence } from "astro/middleware"
-     * import { Locale } from "@mannisto/astro-i18n/runtime"
-     * export const onRequest = sequence(Locale.middleware, myMiddleware)
-     */
-    middleware: astro.MiddlewareHandler;
 };
 
 export { Locale };

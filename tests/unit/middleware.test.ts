@@ -16,9 +16,8 @@ vi.mock("virtual:astro-i18n/config", () => ({
   translations: {},
 }))
 
-const { Locale } = await import("../../src/lib/locale")
+const { onRequest } = await import("../../src/middleware")
 
-// Helper to create a mock middleware context
 function createContext(pathname: string, cookieLocale?: string) {
   const cookies = new Map<string, string>()
   if (cookieLocale) cookies.set("locale", cookieLocale)
@@ -31,10 +30,7 @@ function createContext(pathname: string, cookieLocale?: string) {
     },
     locals: {} as Record<string, string>,
     redirect: (url: string, status: number) =>
-      new Response(null, {
-        status,
-        headers: { location: url },
-      }),
+      new Response(null, { status, headers: { location: url } }),
   }
 }
 
@@ -44,53 +40,26 @@ function next() {
 
 async function run(pathname: string, cookieLocale?: string): Promise<Response> {
   const ctx = createContext(pathname, cookieLocale)
-  const response = await Locale.middleware(ctx as any, next)
+  const response = await onRequest(ctx as any, next)
   return response as Response
 }
 
-describe("Locale.middleware", () => {
-  it("passes through ignored paths", async () => {
-    const response = await run("/_astro/chunk.js")
-    expect(response.status).toBe(200)
+describe("onRequest (i18n middleware)", () => {
+  it("passes through ignored /_astro paths", async () => {
+    expect((await run("/_astro/chunk.js")).status).toBe(200)
   })
 
   it("passes through /keystatic", async () => {
-    const response = await run("/keystatic/dashboard")
-    expect(response.status).toBe(200)
+    expect((await run("/keystatic/dashboard")).status).toBe(200)
   })
 
   it("passes through root /", async () => {
-    const response = await run("/")
-    expect(response.status).toBe(200)
+    expect((await run("/")).status).toBe(200)
   })
 
   it("passes through locale-prefixed paths", async () => {
-    const response = await run("/en/about")
-    expect(response.status).toBe(200)
-  })
-
-  it("sets locals.locale for locale-prefixed paths", async () => {
-    const ctx = createContext("/fi/about")
-    await Locale.middleware(ctx as any, next)
-    expect(ctx.locals.locale).toBe("fi")
-  })
-
-  it("updates cookie when locale changes", async () => {
-    const ctx = createContext("/fi/about", "en")
-    await Locale.middleware(ctx as any, next)
-    expect(ctx.cookies.get("locale")?.value).toBe("fi")
-  })
-
-  it("does not update cookie when locale is unchanged", async () => {
-    const setCalled = vi.fn()
-    const ctx = createContext("/fi/about", "fi")
-    const originalSet = ctx.cookies.set
-    ctx.cookies.set = (...args) => {
-      setCalled()
-      return originalSet(...args)
-    }
-    await Locale.middleware(ctx as any, next)
-    expect(setCalled).not.toHaveBeenCalled()
+    expect((await run("/en/about")).status).toBe(200)
+    expect((await run("/fi/about")).status).toBe(200)
   })
 
   it("redirects unprefixed path to defaultLocale when no cookie", async () => {

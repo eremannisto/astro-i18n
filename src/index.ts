@@ -5,11 +5,6 @@ import { Validate } from "./lib/validate"
 const NAME = "@mannisto/astro-i18n"
 const DEFAULT_IGNORE = ["/_astro"]
 
-/**
- * Resolves the user-supplied config object into a fully configured object.
- * @param config - The user-supplied config object.
- * @returns The fully configured object.
- */
 function resolveConfig(config: I18nConfig): ResolvedI18nConfig {
   const mode = config.mode ?? "static"
   const defaultLocale = config.defaultLocale ?? config.locales[0].code
@@ -24,12 +19,6 @@ function resolveConfig(config: I18nConfig): ResolvedI18nConfig {
   }
 }
 
-/**
- * The @mannisto/astro-i18n Astro integration.
- *
- * Adds locale routing, detection, and translations to your Astro project
- * without relying on Astro's built-in i18n system.
- */
 export default function i18n(config: I18nConfig): AstroIntegration {
   let resolved: ResolvedI18nConfig
   let translationData: Record<string, Record<string, string>> = {}
@@ -59,12 +48,13 @@ export default function i18n(config: I18nConfig): AstroIntegration {
 
         resolved = resolveConfig(config)
 
-        // Virtual module plugin — bakes resolved config and translations into
-        // the bundle so locale.ts can import them as plain static values at
-        // runtime. load() is called lazily so translationData is fully
-        // populated by astro:config:done before any page imports the module.
         updateConfig({
           vite: {
+            // Exclude from Vite's dependency pre-bundling — the virtual module
+            // is resolved by the plugin below and must not be pre-bundled
+            optimizeDeps: {
+              exclude: ["@mannisto/astro-i18n"],
+            },
             plugins: [
               {
                 name: "astro-i18n-virtual",
@@ -87,7 +77,6 @@ export const translations = ${JSON.stringify(translationData)}
         })
 
         // Static mode — inject a prerendered static route at /
-        // Works in both dev and production without an adapter
         if (resolved.mode === "static") {
           injectRoute({
             pattern: "/",
@@ -96,8 +85,7 @@ export const translations = ${JSON.stringify(translationData)}
           })
         }
 
-        // Server mode — inject a server-side API route at /
-        // Requires an adapter for production builds
+        // Server mode — inject a server-side route at /
         if (resolved.mode === "server") {
           injectRoute({
             pattern: "/",
@@ -106,7 +94,7 @@ export const translations = ${JSON.stringify(translationData)}
           })
         }
 
-        // Hybrid mode — inject a server-side API route at /
+        // Hybrid mode — inject a server-side route at /
         // Only / is server-rendered, all locale pages remain static
         if (resolved.mode === "hybrid") {
           injectRoute({
@@ -117,7 +105,6 @@ export const translations = ${JSON.stringify(translationData)}
         }
 
         // Middleware — only registered for server mode
-        // Handles cookie updates and unprefixed URL redirects
         if (resolved.mode === "server") {
           addMiddleware({
             entrypoint: "@mannisto/astro-i18n/middleware",
