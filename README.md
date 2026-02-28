@@ -1,9 +1,12 @@
-# @mannisto/astro-i18n
+# Astro Internationalization (i18n)
 
-A flexible i18n integration for Astro — locale routing, detection, and translations without Astro's built-in i18n system.
+![banner](./assets/banner.png)
+
+![npm version](https://img.shields.io/npm/v/@mannisto/astro-i18n)
+![license](https://img.shields.io/badge/license-MIT-green)
+![astro peer dependency](https://img.shields.io/npm/dependency-version/@mannisto/astro-i18n/peer/astro)
 
 ## Installation
-
 ```bash
 # pnpm
 pnpm add @mannisto/astro-i18n
@@ -16,7 +19,6 @@ yarn add @mannisto/astro-i18n
 ```
 
 ## Setup
-
 ```typescript
 // astro.config.ts
 import { defineConfig } from "astro/config"
@@ -25,12 +27,22 @@ import i18n from "@mannisto/astro-i18n"
 export default defineConfig({
   integrations: [
     i18n({
+      defaultLocale: "en",
       locales: [
-        { code: "en", name: "English", endonym: "English" },
-        { code: "fi", name: "Finnish", endonym: "Suomi", phrase: "Suomeksi" },
+        { 
+          code: "en", 
+          name: "English", 
+          endonym: "English",
+          phrase: "In English"
+        },
+        { 
+          code: "fi", 
+          name: "Finnish", 
+          endonym: "Suomi", 
+          phrase: "Suomeksi" 
+        },
       ],
       mode: "server",
-      defaultLocale: "en",
       translations: "./src/translations",
     }),
   ],
@@ -49,32 +61,9 @@ export default defineConfig({
 | Needs a server | ❌ | ✅ | ✅ |
 | Flash on first visit | ⚠️ | ❌ | ❌ |
 
-**`static`**
-
-- ✅ No server required
-- ✅ Works on any CDN
-- ❌ Brief JS flash on first visit at the root path
-
-**`server`**
-
-- ✅ No flash, clean server-side redirect
-- ✅ Cookie persists across tabs and sessions
-- ✅ Unprefixed URLs automatically redirected
-- ❌ All pages server rendered — no CDN caching
-- ❌ Requires an adapter
-
-**`hybrid`**
-
-- ✅ Locale pages served from CDN
-- ✅ No flash on first visit
-- ✅ Requires adapter only for the root path
-- ⚠️ Cookie updated via `Locale.switch()` — always use locale-prefixed links
-- ❌ No automatic URL prefixing — use `Locale.url()` or relative paths for all links
-
 ## Translations
 
 Create a `src/translations/` directory with a JSON file per locale:
-
 ```json
 {
   "nav.home": "Home",
@@ -86,13 +75,15 @@ Create a `src/translations/` directory with a JSON file per locale:
 All locales must have the same keys as `defaultLocale`.
 
 ## Usage
-
 ```astro
 ---
 import { Locale } from "@mannisto/astro-i18n/runtime"
 
-export const getStaticPaths = () =>
-  Locale.supported.map((code) => ({ params: { locale: code } }))
+export const getStaticPaths = () => {
+  return Locale.supported.map((code) => (
+    { params: { locale: code } }
+  ))
+}
 
 const locale = Locale.from(Astro.url)
 const t = Locale.use(locale)
@@ -113,7 +104,6 @@ const t = Locale.use(locale)
 ## API
 
 ### Locale access
-
 ```typescript
 Locale.supported         // ["en", "fi"]
 Locale.defaultLocale     // "en"
@@ -123,14 +113,12 @@ Locale.get("fi")         // { code: "fi", name: "Finnish", ... }
 ```
 
 ### Translations
-
 ```typescript
 const t = Locale.use(locale)
 t("nav.home")            // "Home"
 ```
 
 ### URL helpers
-
 ```typescript
 Locale.url("fi")                     // "/fi/"
 Locale.url("fi", "/about")           // "/fi/about"
@@ -138,32 +126,47 @@ Locale.url("fi", Astro.url.pathname) // "/fi/current-path"
 ```
 
 ### Language switcher
-
 ```astro
+---
+import { Locale } from "@mannisto/astro-i18n/runtime"
+import type { LocaleConfig } from "@mannisto/astro-i18n"
+
+const locales = Locale.get() as LocaleConfig[]
+---
+
+{locales.map((locale) => (
+  <button data-locale={locale.code}>
+    {locale.phrase ?? locale.endonym}
+  </button>
+))}
+
 <script>
   import { Locale } from "@mannisto/astro-i18n/runtime"
-</script>
 
-<button onclick="Locale.switch('fi')">Suomeksi</button>
+  document.querySelectorAll("button[data-locale]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const locale = button.getAttribute("data-locale")
+      if (locale) Locale.switch(locale)
+    })
+  })
+</script>
 ```
 
-`Locale.switch(locale, path?)` updates localStorage and cookie then navigates. Works in all modes.
+`Locale.switch(locale, path?)` updates the cookie then navigates. Works in all modes.
 
 ### Middleware (server mode)
 
 Auto-registered in `server` mode. Redirects unprefixed URLs and keeps the cookie in sync. Can also be used manually:
-
 ```typescript
 // src/middleware.ts
 import { sequence } from "astro/middleware"
-import { Locale } from "@mannisto/astro-i18n/runtime"
-import myMiddleware from "./my-middleware"
+import { onRequest as i18nMiddleware } from "@mannisto/astro-i18n/middleware"
+import { onRequest as myMiddleware } from "./my-middleware"
 
-export const onRequest = sequence(Locale.middleware, myMiddleware)
+export const onRequest = sequence(i18nMiddleware, myMiddleware)
 ```
 
 ## Configuration
-
 ```typescript
 i18n({
   // Required — list of supported locales
@@ -191,7 +194,6 @@ i18n({
 ```
 
 ## Development
-
 ```bash
 pnpm install
 pnpm playwright install chromium
@@ -201,4 +203,4 @@ pnpm test:e2e
 
 ## License
 
-MIT
+MIT © [Ere Männistö](https://github.com/eremannisto)

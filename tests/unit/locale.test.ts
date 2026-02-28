@@ -114,19 +114,16 @@ describe("Locale.use — with translations", () => {
   })
 
   it("returns the translated string for a key", () => {
-    const t = Locale.use("fi")
-    expect(t("nav.home")).toBe("Etusivu")
+    expect(Locale.use("fi")("nav.home")).toBe("Etusivu")
     expect(Locale.use("en")("nav.home")).toBe("Home")
   })
 
   it("throws for a missing translation key", () => {
-    const t = Locale.use("fi")
-    expect(() => t("nav.missing")).toThrow('Missing translation key "nav.missing"')
+    expect(() => Locale.use("fi")("nav.missing")).toThrow('Missing translation key "nav.missing"')
   })
 
   it("throws for an unknown locale", () => {
-    const t = Locale.use("de")
-    expect(() => t("nav.home")).toThrow('No translations found for locale "de"')
+    expect(() => Locale.use("de")("nav.home")).toThrow('No translations found for locale "de"')
   })
 })
 

@@ -67,9 +67,7 @@ var Validate = {
     if (!mode) return;
     const indexPath = new URL("./src/pages/index.astro", root);
     if (fs.existsSync(indexPath)) {
-      throw new Error(
-        `${NAME} Found conflicting src/pages/index.astro \u2014 remove it or leave mode unset.`
-      );
+      throw new Error(`${NAME} Found conflicting src/pages/index.astro \u2014 remove it.`);
     }
   }
 };
@@ -114,6 +112,11 @@ function i18n(config) {
         resolved = resolveConfig(config);
         updateConfig({
           vite: {
+            // Exclude from Vite's dependency pre-bundling — the virtual module
+            // is resolved by the plugin below and must not be pre-bundled
+            optimizeDeps: {
+              exclude: ["@mannisto/astro-i18n"]
+            },
             plugins: [
               {
                 name: "astro-i18n-virtual",

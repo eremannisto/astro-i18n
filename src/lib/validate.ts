@@ -83,9 +83,7 @@ export const Validate = {
     if (!mode) return
     const indexPath = new URL("./src/pages/index.astro", root)
     if (fs.existsSync(indexPath)) {
-      throw new Error(
-        `${NAME} Found conflicting src/pages/index.astro — remove it or leave mode unset.`
-      )
+      throw new Error(`${NAME} Found conflicting src/pages/index.astro — remove it.`)
     }
   },
 }
