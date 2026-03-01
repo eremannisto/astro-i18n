@@ -87,6 +87,36 @@ var Locale = {
       }
       return record[key];
     };
+  },
+  /**
+   * Checks if the current URL is missing a locale prefix and redirects to the
+   * locale-prefixed version if so. Should be called at the top of 404.astro
+   * in static and hybrid mode to handle unprefixed paths gracefully.
+   *
+   * Uses the locale cookie if available, otherwise falls back to defaultLocale.
+   * Returns the redirect Response if a redirect is needed, or null if the URL
+   * already has a valid locale prefix and the 404 page should render normally.
+   *
+   * @example
+   * ---
+   * // src/pages/404.astro
+   * import { Locale } from "@mannisto/astro-i18n/runtime"
+   * export const prerender = false
+   *
+   * const redirect = Locale.redirect(Astro)
+   * if (redirect) return redirect
+   *
+   * const locale = Locale.from(Astro.url)
+   * ---
+   */
+  redirect(astro) {
+    const pathname = astro.url.pathname;
+    const codes = config.locales.map((l) => l.code);
+    const firstSegment = pathname.split("/").filter(Boolean)[0];
+    if (codes.includes(firstSegment)) return null;
+    const cookie = astro.cookies.get("locale")?.value;
+    const locale = cookie && codes.includes(cookie) ? cookie : config.defaultLocale;
+    return astro.redirect(`/${locale}${pathname}`, 302);
   }
 };
 export {

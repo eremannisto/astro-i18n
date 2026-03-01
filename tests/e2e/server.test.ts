@@ -50,7 +50,7 @@ test.describe("server mode — root detection", () => {
   })
 })
 
-test.describe("server mode — middleware", () => {
+test.describe("server mode — unprefixed redirect", () => {
   test("redirects unprefixed path to defaultLocale when no cookie", async ({ page }) => {
     await page.context().clearCookies()
     await page.goto("/about")
@@ -65,25 +65,43 @@ test.describe("server mode — middleware", () => {
     await expect(page).toHaveURL("/fi/about")
   })
 
-  test("updates cookie when navigating to new locale", async ({ page }) => {
+  test("redirects to defaultLocale when cookie has unknown locale", async ({ page }) => {
     await page
       .context()
-      .addCookies([{ name: "locale", value: "en", domain: "localhost", path: "/" }])
-    await page.goto("/fi/")
-    const cookies = await page.context().cookies()
-    const locale = cookies.find((c) => c.name === "locale")
-    expect(locale?.value).toBe("fi")
+      .addCookies([{ name: "locale", value: "de", domain: "localhost", path: "/" }])
+    await page.goto("/about")
+    await expect(page).toHaveURL("/en/about")
+  })
+})
+
+test.describe("server mode — 404 handling", () => {
+  test("redirects unprefixed unknown path to defaultLocale", async ({ page }) => {
+    await page.context().clearCookies()
+    await page.goto("/banana")
+    await expect(page).toHaveURL("/en/banana")
+    await expect(page.getByTestId("not-found")).toHaveText("404")
   })
 
-  test("persists locale preference on return visit to /", async ({ page }) => {
+  test("redirects unprefixed unknown path to cookie locale", async ({ page }) => {
+    await page
+      .context()
+      .addCookies([{ name: "locale", value: "fi", domain: "localhost", path: "/" }])
+    await page.goto("/banana")
+    await expect(page).toHaveURL("/fi/banana")
+    await expect(page.getByTestId("not-found")).toHaveText("404")
+  })
+
+  test("renders 404 for unknown locale-prefixed path", async ({ page }) => {
     await page.context().clearCookies()
-    // First visit — defaults to en
-    await page.goto("/")
-    await expect(page).toHaveURL("/en/")
-    // Navigate to fi
-    await page.goto("/fi/")
-    // Return to / — should redirect to fi
-    await page.goto("/")
-    await expect(page).toHaveURL("/fi/")
+    await page.goto("/en/banana")
+    await expect(page).toHaveURL("/en/banana")
+    await expect(page.getByTestId("not-found")).toHaveText("404")
+  })
+
+  test("renders 404 for unknown fi-prefixed path", async ({ page }) => {
+    await page.context().clearCookies()
+    await page.goto("/fi/banana")
+    await expect(page).toHaveURL("/fi/banana")
+    await expect(page.getByTestId("not-found")).toHaveText("404")
   })
 })

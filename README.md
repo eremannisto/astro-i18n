@@ -42,27 +42,29 @@ See the full [Configuration reference](#configuration) below.
 
 ## Modes
 
-### Static
+### `static`
 
 Pages prebuilt at build time, locale detection at the root via a small inline script.
 
 - No server required — works on any CDN
 - First-time visitors may briefly see the unlocalized root URL before being redirected
+- Unprefixed paths like `/about` are not auto-redirected — handle them in `404.astro` with `Locale.redirect(Astro)`
 
-### Server
+### `server`
 
 Pages rendered on demand, middleware handles all locale detection and redirects.
 
 - Requires a Node adapter
 - No flash on first visit
-- Supports unprefixed URL rewrites (e.g. `/about` → `/en/about`)
+- Unprefixed paths (e.g. `/about`) are automatically redirected to their locale-prefixed equivalent
 
-### Hybrid (Recommended)
+### `hybrid`
 
-Pages prerendered for performance, with a server-rendered catch-all route handling root detection and unprefixed URL redirects.
+Pages prerendered for performance, with server-side locale handling at the root.
 
 - Requires a Node adapter
-- Best of both worlds: static performance with server-side locale handling
+- No flash on first visit
+- Unprefixed paths like `/about` are not auto-redirected — handle them in `404.astro` with `Locale.redirect(Astro)`
 
 ## Translations
 
@@ -125,7 +127,7 @@ Without `prerender = false`, Astro will treat dynamic routes as static and throw
 
 ### Layout
 
-Your layout should derive the locale from the URL and sync it to a cookie on every page load. This ensures the correct locale is remembered across visits and that 404 pages detect the locale correctly.
+Your layout should derive the locale from the URL and sync it to a cookie on every page load. This ensures the correct locale is remembered across visits and that 404 pages can detect the locale correctly.
 
 ```astro
 ---
@@ -150,12 +152,40 @@ const locale = Locale.from(Astro.url)
 
 ### 404 pages
 
-Create a `src/pages/404.astro` at the root. In `hybrid` and `server` mode, unknown paths are redirected to their locale-prefixed equivalent before the 404 renders (e.g. `/banana` → `/en/banana`), so `Locale.from(Astro.url)` always returns the correct locale. In `static` mode, `Locale.from` falls back to `defaultLocale` for bare unprefixed paths, but locale-prefixed paths like `/fi/banana` still resolve correctly.
+Create a `src/pages/404.astro` at the root of your pages directory. How the locale is resolved depends on your mode.
+
+**In `server` mode**, the middleware automatically redirects all unprefixed paths to their locale-prefixed equivalent before the 404 page renders (e.g. `/banana` → `/en/banana`). `Locale.from(Astro.url)` always returns the correct locale.
 
 ```astro
 ---
+// src/pages/404.astro (server mode)
+export const prerender = false
+
 import { Locale } from "@mannisto/astro-i18n/runtime"
 import Layout from "@layouts/Layout.astro"
+
+const locale = Locale.from(Astro.url)
+const t = Locale.use(locale)
+---
+
+<Layout title={t("error.title")}>
+  <h1>{t("error.title")}</h1>
+  <p>{t("error.description")}</p>
+</Layout>
+```
+
+**In `static` and `hybrid` mode**, unprefixed paths are not redirected automatically. Use `Locale.redirect(Astro)` at the top of your 404 page — it redirects the visitor to the locale-prefixed equivalent (e.g. `/banana` → `/en/banana`) using the cookie locale, falling back to `defaultLocale`. Locale-prefixed paths like `/en/banana` pass through and render the 404 content directly.
+
+```astro
+---
+// src/pages/404.astro (static and hybrid mode)
+export const prerender = false
+
+import { Locale } from "@mannisto/astro-i18n/runtime"
+import Layout from "@layouts/Layout.astro"
+
+const redirect = Locale.redirect(Astro)
+if (redirect) return redirect
 
 const locale = Locale.from(Astro.url)
 const t = Locale.use(locale)
@@ -242,6 +272,17 @@ Locale.url("fi", Astro.url.pathname) // "/fi/current-path"
 Locale.switch("fi") // sets cookie and navigates to the equivalent page in the new locale
 ```
 
+### Locale.redirect
+
+```typescript
+// Returns a redirect Response if the URL has no locale prefix, or null if it does.
+// Use at the top of 404.astro in static and hybrid mode.
+const redirect = Locale.redirect(Astro)
+if (redirect) return redirect
+```
+
+Uses the locale cookie if available, falls back to `defaultLocale`. Invalid cookie values are ignored.
+
 ## Configuration
 
 ```typescript
@@ -266,8 +307,9 @@ i18n({
   translations: "./src/translations",
 
   // URL paths to bypass the middleware — server and hybrid mode only.
-  // Supports exact prefixes and glob patterns.
-  ignore: ["/keystatic", "/api/keystatic"],
+  // Plain paths match the exact path and all sub-paths (e.g. "/keystatic" also matches "/keystatic/dashboard").
+  // Glob patterns are also supported for more specific rules (e.g. "/api/uploads/**/*.png").
+  ignore: ["/keystatic", "/api"],
 })
 ```
 

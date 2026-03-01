@@ -61,45 +61,15 @@ test.describe("hybrid mode — root detection", () => {
   })
 })
 
-test.describe("hybrid mode — unprefixed redirect", () => {
-  test("redirects unprefixed path to defaultLocale when no cookie", async ({ page }) => {
-    await page.context().clearCookies()
-    await page.goto("/about")
-    await expect(page).toHaveURL("/en/about")
-  })
-
-  test("redirects unprefixed path to cookie locale", async ({ page }) => {
-    await page
-      .context()
-      .addCookies([{ name: "locale", value: "fi", domain: "localhost", path: "/" }])
-    await page.goto("/about")
-    await expect(page).toHaveURL("/fi/about")
-  })
-
-  test("redirects to defaultLocale when cookie has unknown locale", async ({ page }) => {
-    await page
-      .context()
-      .addCookies([{ name: "locale", value: "de", domain: "localhost", path: "/" }])
-    await page.goto("/about")
-    await expect(page).toHaveURL("/en/about")
-  })
-
-  test("does not redirect ignored paths", async ({ page }) => {
-    await page.context().clearCookies()
-    const response = await page.request.get("/keystatic")
-    expect(response.status()).not.toBe(302)
-  })
-})
-
 test.describe("hybrid mode — 404 handling", () => {
-  test("renders 404 for unknown unprefixed path after redirect", async ({ page }) => {
+  test("redirects unprefixed unknown path to defaultLocale", async ({ page }) => {
     await page.context().clearCookies()
     await page.goto("/banana")
     await expect(page).toHaveURL("/en/banana")
     await expect(page.getByTestId("not-found")).toHaveText("404")
   })
 
-  test("renders 404 for unknown unprefixed path with cookie locale", async ({ page }) => {
+  test("redirects unprefixed unknown path to cookie locale", async ({ page }) => {
     await page
       .context()
       .addCookies([{ name: "locale", value: "fi", domain: "localhost", path: "/" }])
