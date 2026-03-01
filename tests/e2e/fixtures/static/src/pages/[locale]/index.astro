@@ -11,6 +11,9 @@ const t = Locale.use(locale)
   <head>
     <meta charset="UTF-8" />
     <title>{t("nav.home")}</title>
+    <script is:inline define:vars={{ locale }}>
+      document.cookie = `locale=${locale}; path=/; SameSite=Lax; Max-Age=31536000`
+    </script>
   </head>
   <body>
     <h1 data-testid="title">{t("nav.home")}</h1>

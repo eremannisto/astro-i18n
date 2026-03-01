@@ -48,4 +48,50 @@ test.describe("static mode — root detection", () => {
     await page.goto("/")
     await expect(page).toHaveURL("/en/")
   })
+
+  test("updates cookie when navigating to new locale", async ({ page }) => {
+    await page.context().clearCookies()
+    await page.goto("/en/")
+    await page.goto("/fi/")
+    await expect(page).toHaveURL("/fi/")
+  })
+
+  test("persists locale preference on return visit to /", async ({ page }) => {
+    await page.context().clearCookies()
+    await page.goto("/fi/")
+    await page.goto("/")
+    await expect(page).toHaveURL("/fi/")
+  })
+})
+
+test.describe("static mode — 404 handling", () => {
+  test("redirects unprefixed unknown path to defaultLocale", async ({ page }) => {
+    await page.context().clearCookies()
+    await page.goto("/banana")
+    await expect(page).toHaveURL("/en/banana")
+    await expect(page.getByTestId("not-found")).toHaveText("404")
+  })
+
+  test("redirects unprefixed unknown path to cookie locale", async ({ page }) => {
+    await page
+      .context()
+      .addCookies([{ name: "locale", value: "fi", domain: "localhost", path: "/" }])
+    await page.goto("/banana")
+    await expect(page).toHaveURL("/fi/banana")
+    await expect(page.getByTestId("not-found")).toHaveText("404")
+  })
+
+  test("renders 404 for unknown locale-prefixed path", async ({ page }) => {
+    await page.context().clearCookies()
+    await page.goto("/en/banana")
+    await expect(page).toHaveURL("/en/banana")
+    await expect(page.getByTestId("not-found")).toHaveText("404")
+  })
+
+  test("renders 404 for unknown fi-prefixed path", async ({ page }) => {
+    await page.context().clearCookies()
+    await page.goto("/fi/banana")
+    await expect(page).toHaveURL("/fi/banana")
+    await expect(page.getByTestId("not-found")).toHaveText("404")
+  })
 })
