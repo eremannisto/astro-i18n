@@ -47,6 +47,37 @@ declare const Locale: {
      */
     use(locale: LocaleCode): (key: string) => string;
     /**
+     * Shorthand for Locale.use(Locale.from(url)).
+     * Returns a translation function for the locale derived from the given URL.
+     * Use this when you just need translations for the current page.
+     *
+     * @example
+     * ---
+     * const t = Locale.t(Astro.url)
+     * ---
+     * <h1>{t("nav.home")}</h1>
+     */
+    t(url: URL): (key: string) => string;
+    /**
+     * Generates hreflang link objects for all supported locales, plus an x-default entry.
+     * Useful for rendering <link rel="alternate"> tags for SEO.
+     *
+     * For pages with the same slug across all locales, this works automatically.
+     * For pages with translated slugs, build the array manually instead.
+     *
+     * @example
+     * ---
+     * const alternates = Locale.hreflang(Astro.url, Astro.site ?? Astro.url.origin)
+     * ---
+     * {alternates.map(({ href, hreflang }) => (
+     *   <link rel="alternate" href={href} hreflang={hreflang} />
+     * ))}
+     */
+    hreflang(url: URL, site: string | URL): {
+        href: string;
+        hreflang: string;
+    }[];
+    /**
      * Checks if the current URL is missing a locale prefix and redirects to the
      * locale-prefixed version if so. Should be called at the top of 404.astro
      * in static and hybrid mode to handle unprefixed paths gracefully.
