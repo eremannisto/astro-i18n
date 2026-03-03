@@ -146,6 +146,53 @@ describe("Locale.use — without translations", () => {
   })
 })
 
+describe("Locale.hreflang", () => {
+  it("returns hreflang entries for all locales plus x-default", () => {
+    const result = Locale.hreflang(new URL("https://example.com/en/about"), "https://example.com")
+    expect(result).toEqual([
+      { href: "https://example.com/en/about", hreflang: "en" },
+      { href: "https://example.com/fi/about", hreflang: "fi" },
+      { href: "https://example.com/en/about", hreflang: "x-default" },
+    ])
+  })
+
+  it("strips existing locale prefix when generating alternate URLs", () => {
+    const result = Locale.hreflang(new URL("https://example.com/fi/about"), "https://example.com")
+    expect(result).toEqual([
+      { href: "https://example.com/en/about", hreflang: "en" },
+      { href: "https://example.com/fi/about", hreflang: "fi" },
+      { href: "https://example.com/en/about", hreflang: "x-default" },
+    ])
+  })
+
+  it("handles root path", () => {
+    const result = Locale.hreflang(new URL("https://example.com/en/"), "https://example.com")
+    expect(result).toEqual([
+      { href: "https://example.com/en/", hreflang: "en" },
+      { href: "https://example.com/fi/", hreflang: "fi" },
+      { href: "https://example.com/en/", hreflang: "x-default" },
+    ])
+  })
+
+  it("accepts site as a URL object", () => {
+    const result = Locale.hreflang(
+      new URL("https://example.com/en/about"),
+      new URL("https://example.com")
+    )
+    expect(result).toEqual([
+      { href: "https://example.com/en/about", hreflang: "en" },
+      { href: "https://example.com/fi/about", hreflang: "fi" },
+      { href: "https://example.com/en/about", hreflang: "x-default" },
+    ])
+  })
+
+  it("x-default always points to defaultLocale", () => {
+    const result = Locale.hreflang(new URL("https://example.com/fi/about"), "https://example.com")
+    const xDefault = result.find((r) => r.hreflang === "x-default")
+    expect(xDefault?.href).toBe("https://example.com/en/about")
+  })
+})
+
 describe("Locale.redirect", () => {
   function makeAstro(pathname: string, cookieLocale?: string) {
     return {

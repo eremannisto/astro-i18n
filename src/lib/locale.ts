@@ -117,6 +117,34 @@ export const Locale = {
   },
 
   /**
+   * Generates hreflang link objects for all supported locales, plus an x-default entry.
+   * Useful for passing to a metadata component to improve SEO for multilingual sites.
+   *
+   * For pages with the same slug across all locales, this works automatically.
+   * For pages with translated slugs, pass your own `languageAlternates` array instead.
+   *
+   * @example
+   * ---
+   * // src/layouts/Layout.astro
+   * const languageAlternates = Locale.hreflang(Astro.url, Astro.site ?? Astro.url.origin)
+   * ---
+   * <Head languageAlternates={languageAlternates} />
+   */
+  hreflang(url: URL, site: string | URL): { href: string; hreflang: string }[] {
+    const base = typeof site === "string" ? site : site.href
+    return [
+      ...config.locales.map((l: LocaleConfig) => ({
+        href: new URL(Locale.url(l.code, url.pathname), base).href,
+        hreflang: l.code,
+      })),
+      {
+        href: new URL(Locale.url(config.defaultLocale, url.pathname), base).href,
+        hreflang: "x-default",
+      },
+    ]
+  },
+
+  /**
    * Checks if the current URL is missing a locale prefix and redirects to the
    * locale-prefixed version if so. Should be called at the top of 404.astro
    * in static and hybrid mode to handle unprefixed paths gracefully.
