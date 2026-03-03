@@ -117,18 +117,34 @@ export const Locale = {
   },
 
   /**
-   * Generates hreflang link objects for all supported locales, plus an x-default entry.
-   * Useful for passing to a metadata component to improve SEO for multilingual sites.
-   *
-   * For pages with the same slug across all locales, this works automatically.
-   * For pages with translated slugs, pass your own `languageAlternates` array instead.
+   * Shorthand for Locale.use(Locale.from(url)).
+   * Returns a translation function for the locale derived from the given URL.
+   * Use this when you just need translations for the current page.
    *
    * @example
    * ---
-   * // src/layouts/Layout.astro
-   * const languageAlternates = Locale.hreflang(Astro.url, Astro.site ?? Astro.url.origin)
+   * const t = Locale.t(Astro.url)
    * ---
-   * <Head languageAlternates={languageAlternates} />
+   * <h1>{t("nav.home")}</h1>
+   */
+  t(url: URL): (key: string) => string {
+    return Locale.use(Locale.from(url))
+  },
+
+  /**
+   * Generates hreflang link objects for all supported locales, plus an x-default entry.
+   * Useful for rendering <link rel="alternate"> tags for SEO.
+   *
+   * For pages with the same slug across all locales, this works automatically.
+   * For pages with translated slugs, build the array manually instead.
+   *
+   * @example
+   * ---
+   * const alternates = Locale.hreflang(Astro.url, Astro.site ?? Astro.url.origin)
+   * ---
+   * {alternates.map(({ href, hreflang }) => (
+   *   <link rel="alternate" href={href} hreflang={hreflang} />
+   * ))}
    */
   hreflang(url: URL, site: string | URL): { href: string; hreflang: string }[] {
     const base = typeof site === "string" ? site : site.href

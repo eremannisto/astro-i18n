@@ -146,6 +146,27 @@ describe("Locale.use — without translations", () => {
   })
 })
 
+describe("Locale.t", () => {
+  it("returns a translation function for the locale in the URL", () => {
+    expect(typeof Locale.t(new URL("https://example.com/fi/about"))).toBe("function")
+  })
+
+  it("translates a key using the locale from the URL", () => {
+    expect(Locale.t(new URL("https://example.com/fi/about"))("nav.home")).toBe("Etusivu")
+    expect(Locale.t(new URL("https://example.com/en/about"))("nav.home")).toBe("Home")
+  })
+
+  it("falls back to defaultLocale when URL has no locale prefix", () => {
+    expect(Locale.t(new URL("https://example.com/about"))("nav.home")).toBe("Home")
+  })
+
+  it("throws for a missing translation key", () => {
+    expect(() => Locale.t(new URL("https://example.com/fi/about"))("nav.missing")).toThrow(
+      'Missing translation key "nav.missing"'
+    )
+  })
+})
+
 describe("Locale.hreflang", () => {
   it("returns hreflang entries for all locales plus x-default", () => {
     const result = Locale.hreflang(new URL("https://example.com/en/about"), "https://example.com")
