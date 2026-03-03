@@ -87,6 +87,7 @@ Your layout must sync the current locale to a cookie on every page load. This is
 import { Locale } from "@mannisto/astro-i18n/runtime"
 
 const locale = Locale.from(Astro.url)
+const t = Locale.t(Astro.url)
 ---
 
 <html lang={locale}>
@@ -118,8 +119,7 @@ export const getStaticPaths = () => {
   }))
 }
 
-const locale = Locale.from(Astro.url)
-const t = Locale.use(locale)
+const t = Locale.t(Astro.url)
 ---
 
 <Layout>
@@ -136,8 +136,7 @@ export const prerender = false
 import { Locale } from "@mannisto/astro-i18n/runtime"
 import Layout from "@layouts/Layout.astro"
 
-const locale = Locale.from(Astro.url)
-const t = Locale.use(locale)
+const t = Locale.t(Astro.url)
 ---
 
 <Layout>
@@ -161,8 +160,7 @@ export const prerender = false
 import { Locale } from "@mannisto/astro-i18n/runtime"
 import Layout from "@layouts/Layout.astro"
 
-const locale = Locale.from(Astro.url)
-const t = Locale.use(locale)
+const t = Locale.t(Astro.url)
 ---
 
 <Layout>
@@ -184,8 +182,7 @@ import Layout from "@layouts/Layout.astro"
 const redirect = Locale.redirect(Astro)
 if (redirect) return redirect
 
-const locale = Locale.from(Astro.url)
-const t = Locale.use(locale)
+const t = Locale.t(Astro.url)
 ---
 
 <Layout>
@@ -273,9 +270,10 @@ export const onRequest = sequence(i18nMiddleware, myMiddleware)
 | `Locale.get()` | `LocaleConfig[]` | All locale configs |
 | `Locale.get("fi")` | `LocaleConfig` | Config for a specific locale |
 | `Locale.from(Astro.url)` | `"fi"` | Derives the current locale from the URL |
-| `Locale.use(locale)` | `t` | Returns a translation function for the given locale — call it as `t("key")` |
+| `Locale.t(Astro.url)` | `t` | Returns a translation function for the current URL — shorthand for `Locale.use(Locale.from(url))` |
+| `Locale.use(locale)` | `t` | Returns a translation function for a given locale code |
 | `Locale.switch("fi")` | `void` | Sets the locale cookie and navigates to the equivalent page |
-
+| `Locale.hreflang(Astro.url, Astro.site ?? Astro.url.origin)` | `{ href, hreflang }[]` | Hreflang entries for all locales plus `x-default` |
 
 ### URL helpers
 
@@ -295,6 +293,27 @@ Use it at the top of `404.astro` in `static` and `hybrid` mode:
 const redirect = Locale.redirect(Astro)
 if (redirect) return redirect
 ```
+
+### Locale.hreflang
+
+`Locale.hreflang(url, site)` generates an array of hreflang objects for all supported locales plus an `x-default` entry pointing to `defaultLocale`. Use the result to render `<link rel="alternate">` tags in your document head.
+
+```astro
+---
+// src/layouts/Layout.astro
+import { Locale } from "@mannisto/astro-i18n/runtime"
+
+const alternates = Locale.hreflang(Astro.url, Astro.site ?? Astro.url.origin)
+---
+
+<head>
+  {alternates.map(({ href, hreflang }) => (
+    <link rel="alternate" href={href} hreflang={hreflang} />
+  ))}
+</head>
+```
+
+For pages with the same slug across all locales (e.g. `/en/about`, `/fi/about`), this works automatically. For pages with translated slugs (e.g. `/en/about`, `/fi/tietoa`), build the array manually and pass it in instead — the shape is the same.
 
 ## Configuration
 
