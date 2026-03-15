@@ -1,6 +1,6 @@
 {
   "name": "@mannisto/astro-i18n",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A flexible alternative to Astro's built-in i18n, with locale routing, detection, and translations for static and SSR sites.",
   "license": "MIT",
   "type": "module",
@@ -71,27 +71,32 @@
   "scripts": {
     "build": "tsup",
     "prepublishOnly": "pnpm build",
-    "lint": "biome lint ./src",
+    "lint": "eslint . --fix",
     "format": "prettier --write .",
-    "check": "biome check ./src",
+    "check": "eslint . && prettier --check .",
     "test:unit": "vitest run",
     "test:e2e": "pnpm build > /dev/null 2>&1 && playwright test",
     "test": "pnpm run test:unit && pnpm run test:e2e"
   },
   "peerDependencies": {
-    "astro": "^5.0.0"
+    "astro": "^5.0.0 || ^6.0.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.4",
+    "@eslint/js": "^10.0.1",
+    "@ianvs/prettier-plugin-sort-imports": "^4.7.1",
     "@playwright/test": "^1.58.2",
     "@types/node": "^22.19.13",
     "@types/picomatch": "^4.0.2",
-    "astro": "^5.18.0",
+    "astro": "^6.0.4",
+    "eslint": "^10.0.3",
+    "eslint-config-prettier": "^10.1.8",
     "picomatch": "^4.0.3",
     "prettier": "^3.8.1",
     "prettier-plugin-astro": "^0.14.1",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
-    "vitest": "^3.2.4"
-  }
+    "typescript-eslint": "^8.57.0",
+    "vitest": "^4.1.0"
+  },
+  "packageManager": "pnpm@10.32.1+sha512.a706938f0e89ac1456b6563eab4edf1d1faf3368d1191fc5c59790e96dc918e4456ab2e67d613de1043d2e8c81f87303e6b40d4ffeca9df15ef1ad567348f2be"
 }

@@ -22,8 +22,9 @@ jobs:
       - run: pnpm install
       - run: pnpm check
 
-  test:
+  test-unit:
     name: Unit Tests
+    needs: check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,3 +37,20 @@ jobs:
           cache: pnpm
       - run: pnpm install
       - run: pnpm test:unit
+
+  test-e2e:
+    name: E2E Tests
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: latest
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install
+      - run: pnpm exec playwright install --with-deps
+      - run: pnpm test:e2e

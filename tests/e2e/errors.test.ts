@@ -1,6 +1,6 @@
-import { test, expect } from "@playwright/test"
 import { spawn } from "node:child_process"
 import { resolve } from "node:path"
+import { expect, test } from "@playwright/test"
 
 const FIXTURE = resolve("tests/e2e/fixtures/errors")
 

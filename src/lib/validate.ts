@@ -1,4 +1,5 @@
 import fs from "node:fs"
+
 import type { I18nConfig, ResolvedI18nConfig } from "../types"
 
 const NAME = "@mannisto/astro-i18n"
