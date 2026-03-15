@@ -1,4 +1,5 @@
 import { config, translations } from "virtual:astro-i18n/config"
+
 import type { LocaleCode, LocaleConfig } from "../types"
 
 const NAME = "@mannisto/astro-i18n"

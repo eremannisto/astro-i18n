@@ -1,5 +1,5 @@
-import { defineConfig } from "astro/config"
 import i18n from "@mannisto/astro-i18n"
+import { defineConfig } from "astro/config"
 
 export default defineConfig({
   integrations: [

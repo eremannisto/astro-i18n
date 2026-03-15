@@ -1,6 +1,7 @@
 import { defineMiddleware } from "astro/middleware"
 import pm from "picomatch"
 import { config } from "virtual:astro-i18n/config"
+
 import type { LocaleConfig } from "./types"
 
 // Normalizes an ignore pattern so plain path prefixes match both the exact

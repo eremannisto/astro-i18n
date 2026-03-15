@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test"
+import { expect, test } from "@playwright/test"
 
 test.describe("hybrid mode — locale pages", () => {
   test("renders English home page", async ({ page }) => {

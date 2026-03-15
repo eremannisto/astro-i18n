@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro"
 import { config } from "virtual:astro-i18n/config"
+
 import type { LocaleConfig } from "../types"
 
 // Injected at / when mode is "static".

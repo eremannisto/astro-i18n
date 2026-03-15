@@ -1,6 +1,7 @@
 import type { AstroIntegration } from "astro"
-import type { I18nConfig, ResolvedI18nConfig } from "./types"
+
 import { Validate } from "./lib/validate"
+import type { I18nConfig, ResolvedI18nConfig } from "./types"
 
 const NAME = "@mannisto/astro-i18n"
 const DEFAULT_IGNORE = ["/_astro"]
