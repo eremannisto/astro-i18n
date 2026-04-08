@@ -5,7 +5,7 @@
 ```bash
 # install dependencies and playwright browsers
 pnpm install
-pnpm playwright install chromium
+pnpm exec playwright install
 ```
 
 ## Development
