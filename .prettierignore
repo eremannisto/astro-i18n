@@ -4,3 +4,4 @@ dist
 .github
 *.md
 .pnpm-store
+pnpm-lock.yaml
