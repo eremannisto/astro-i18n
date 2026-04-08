@@ -1,3 +1,6 @@
+// src/index.ts
+import path from "path";
+
 // src/lib/validate.ts
 import fs from "fs";
 var NAME = "@mannisto/astro-i18n";
@@ -93,6 +96,26 @@ function resolveConfig(config) {
     translations: config.translations
   };
 }
+function watchTranslations(server, resolved, logger, onReload) {
+  if (!resolved.translations) return;
+  const directory = path.resolve(resolved.translations);
+  server.watcher.add(directory);
+  server.watcher.on("change", (file) => {
+    if (!file.includes(directory) || !file.endsWith(".json")) return;
+    try {
+      const data = Validate.translations(resolved);
+      onReload(data);
+    } catch (e) {
+      logger.error(`Failed to reload translations: ${e.message}`);
+      return;
+    }
+    const module = server.moduleGraph.getModuleById("\0virtual:astro-i18n/config");
+    if (module) {
+      server.moduleGraph.invalidateModule(module);
+      server.ws.send({ type: "full-reload" });
+    }
+  });
+}
 function i18n(config) {
   let resolved;
   let translationData = {};
@@ -170,7 +193,6 @@ export const translations = ${JSON.stringify(translationData)}
             order: "pre"
           });
         }
-        logger.info("i18n configured.");
       },
       // Validates and loads translation files only if translations are
       // configured. Runs after all integrations have finished setup.
@@ -178,6 +200,13 @@ export const translations = ${JSON.stringify(translationData)}
         if (resolved.translations) {
           translationData = Validate.translations(resolved);
         }
+      },
+      // Watches translation files in dev mode and hot-reloads them
+      // without requiring a dev server restart.
+      "astro:server:setup": ({ server, logger }) => {
+        watchTranslations(server, resolved, logger, (data) => {
+          translationData = data;
+        });
       }
     }
   };

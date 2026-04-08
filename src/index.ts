@@ -1,3 +1,4 @@
+import path from "node:path"
 import type { AstroIntegration } from "astro"
 
 import { Validate } from "./lib/validate"
@@ -18,6 +19,37 @@ function resolveConfig(config: I18nConfig): ResolvedI18nConfig {
     ignore,
     translations: config.translations,
   }
+}
+
+function watchTranslations(
+  server: Parameters<NonNullable<AstroIntegration["hooks"]["astro:server:setup"]>>[0]["server"],
+  resolved: ResolvedI18nConfig,
+  logger: Parameters<NonNullable<AstroIntegration["hooks"]["astro:server:setup"]>>[0]["logger"],
+  onReload: (data: Record<string, Record<string, string>>) => void
+): void {
+  if (!resolved.translations) return
+
+  const directory = path.resolve(resolved.translations)
+
+  server.watcher.add(directory)
+
+  server.watcher.on("change", (file) => {
+    if (!file.includes(directory) || !file.endsWith(".json")) return
+
+    try {
+      const data = Validate.translations(resolved)
+      onReload(data)
+    } catch (e) {
+      logger.error(`Failed to reload translations: ${(e as Error).message}`)
+      return
+    }
+
+    const module = server.moduleGraph.getModuleById("\0virtual:astro-i18n/config")
+    if (module) {
+      server.moduleGraph.invalidateModule(module)
+      server.ws.send({ type: "full-reload" })
+    }
+  })
 }
 
 export default function i18n(config: I18nConfig): AstroIntegration {
@@ -115,8 +147,6 @@ export const translations = ${JSON.stringify(translationData)}
             order: "pre",
           })
         }
-
-        logger.info("i18n configured.")
       },
 
       // Validates and loads translation files only if translations are
@@ -125,6 +155,14 @@ export const translations = ${JSON.stringify(translationData)}
         if (resolved.translations) {
           translationData = Validate.translations(resolved)
         }
+      },
+
+      // Watches translation files in dev mode and hot-reloads them
+      // without requiring a dev server restart.
+      "astro:server:setup": ({ server, logger }) => {
+        watchTranslations(server, resolved, logger, (data) => {
+          translationData = data
+        })
       },
     },
   }
