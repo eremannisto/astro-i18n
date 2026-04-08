@@ -100,6 +100,7 @@ function watchTranslations(server, resolved, logger, onReload) {
   if (!resolved.translations) return;
   const directory = path.resolve(resolved.translations);
   server.watcher.add(directory);
+  server.watcher.setMaxListeners(server.watcher.getMaxListeners() + 1);
   server.watcher.on("change", (file) => {
     if (!file.includes(directory) || !file.endsWith(".json")) return;
     try {
