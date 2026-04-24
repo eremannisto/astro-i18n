@@ -44,6 +44,9 @@
     "./detect/hybrid": {
       "types": "./dist/detect/hybrid.d.ts",
       "default": "./dist/detect/hybrid.js"
+    },
+    "./components/locale-cookie": {
+      "default": "./src/components/LocaleCookie.astro"
     }
   },
   "typesVersions": {
@@ -66,7 +69,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "src/components"
   ],
   "scripts": {
     "build": "tsup",
