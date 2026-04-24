@@ -1,4 +1,4 @@
-import { L as LocaleCode, a as LocaleConfig } from './types-Ji5In9Kk.js';
+import { L as LocaleCode, a as LocaleConfig } from './types-Cvz2gXDq.js';
 
 /**
  * Returns locale configuration by code, or all locales if no code is provided.
@@ -40,6 +40,11 @@ declare const Locale: {
      * Throws if the specified locale code is not found.
      */
     get: typeof getLocale;
+    /**
+     * Returns the text direction for the locale derived from the given URL.
+     * Defaults to "ltr" if no direction is configured.
+     */
+    direction(url: URL): "ltr" | "rtl";
     /**
      * Returns a translation function for the specified locale.
      * The returned function accepts a translation key and returns the translated string.

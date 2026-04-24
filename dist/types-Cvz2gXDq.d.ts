@@ -22,6 +22,11 @@ type LocaleConfig = {
      * Optional short phrase for locale switchers, e.g. "Suomeksi"
      */
     phrase?: string;
+    /**
+     * Text direction for the locale.
+     * @default "ltr"
+     */
+    direction?: "ltr" | "rtl";
 };
 /**
  * How the site handles locale detection and page rendering.
