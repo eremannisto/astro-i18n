@@ -229,7 +229,7 @@ describe("Locale.hreflang", () => {
   })
 })
 
-describe("Locale.redirect", () => {
+describe("Locale.response", () => {
   function makeAstro(pathname: string, cookieLocale?: string) {
     return {
       url: new URL(`https://example.com${pathname}`),
@@ -242,38 +242,51 @@ describe("Locale.redirect", () => {
   }
 
   it("returns null when path already has a valid locale prefix", () => {
-    expect(Locale.redirect(makeAstro("/en/about"))).toBeNull()
-    expect(Locale.redirect(makeAstro("/fi/banana"))).toBeNull()
-    expect(Locale.redirect(makeAstro("/en/"))).toBeNull()
+    expect(Locale.response(makeAstro("/en/about"))).toBeNull()
+    expect(Locale.response(makeAstro("/fi/banana"))).toBeNull()
+    expect(Locale.response(makeAstro("/en/"))).toBeNull()
   })
 
   it("redirects unprefixed path to defaultLocale when no cookie", () => {
-    const result = Locale.redirect(makeAstro("/about")) as any
+    const result = Locale.response(makeAstro("/about")) as any
     expect(result.path).toBe("/en/about")
     expect(result.status).toBe(302)
   })
 
   it("redirects unprefixed path to cookie locale when cookie is set", () => {
-    const result = Locale.redirect(makeAstro("/about", "fi")) as any
+    const result = Locale.response(makeAstro("/about", "fi")) as any
     expect(result.path).toBe("/fi/about")
     expect(result.status).toBe(302)
   })
 
   it("redirects to defaultLocale when cookie has an invalid locale", () => {
-    const result = Locale.redirect(makeAstro("/about", "de")) as any
+    const result = Locale.response(makeAstro("/about", "de")) as any
     expect(result.path).toBe("/en/about")
     expect(result.status).toBe(302)
   })
 
   it("redirects root unprefixed path to defaultLocale", () => {
-    const result = Locale.redirect(makeAstro("/")) as any
+    const result = Locale.response(makeAstro("/")) as any
     expect(result.path).toBe("/en/")
     expect(result.status).toBe(302)
   })
 
   it("redirects unknown path to cookie locale", () => {
-    const result = Locale.redirect(makeAstro("/banana", "fi")) as any
+    const result = Locale.response(makeAstro("/banana", "fi")) as any
     expect(result.path).toBe("/fi/banana")
+    expect(result.status).toBe(302)
+  })
+})
+
+describe("Locale.redirect (deprecated)", () => {
+  it("delegates to Locale.response", () => {
+    const astro = {
+      url: new URL("https://example.com/about"),
+      cookies: { get: () => undefined },
+      redirect: (path: string, status?: number) => ({ path, status }) as unknown as Response,
+    }
+    const result = Locale.redirect(astro) as any
+    expect(result.path).toBe("/en/about")
     expect(result.status).toBe(302)
   })
 })

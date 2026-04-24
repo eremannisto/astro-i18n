@@ -170,12 +170,12 @@ export const Locale = {
   },
 
   /**
-   * Checks if the current URL is missing a locale prefix and redirects to the
-   * locale-prefixed version if so. Should be called at the top of 404.astro
-   * in static and hybrid mode to handle unprefixed paths gracefully.
+   * Checks if the current URL is missing a locale prefix and returns a redirect
+   * Response if so. Should be called at the top of 404.astro in hybrid and
+   * server mode to handle unprefixed paths gracefully.
    *
    * Uses the locale cookie if available, otherwise falls back to defaultLocale.
-   * Returns the redirect Response if a redirect is needed, or null if the URL
+   * Returns a redirect Response if a redirect is needed, or null if the URL
    * already has a valid locale prefix and the 404 page should render normally.
    *
    * @example
@@ -184,13 +184,13 @@ export const Locale = {
    * import { Locale } from "@mannisto/astro-i18n/runtime"
    * export const prerender = false
    *
-   * const redirect = Locale.redirect(Astro)
-   * if (redirect) return redirect
+   * const response = Locale.response(Astro)
+   * if (response) return response
    *
    * const locale = Locale.from(Astro.url)
    * ---
    */
-  redirect(astro: {
+  response(astro: {
     url: URL
     cookies: { get(name: string): { value: string } | undefined }
     redirect(path: string, status?: number): Response
@@ -207,5 +207,16 @@ export const Locale = {
     const locale = cookie && codes.includes(cookie) ? cookie : config.defaultLocale
 
     return astro.redirect(`/${locale}${pathname}`, 302)
+  },
+
+  /**
+   * @deprecated Use `Locale.response()` instead.
+   */
+  redirect(astro: {
+    url: URL
+    cookies: { get(name: string): { value: string } | undefined }
+    redirect(path: string, status?: number): Response
+  }): Response | null {
+    return Locale.response(astro)
   },
 }
