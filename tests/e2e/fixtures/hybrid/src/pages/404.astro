@@ -3,8 +3,8 @@ import { Locale } from "@mannisto/astro-i18n/runtime"
 
 export const prerender = false
 
-const redirect = Locale.redirect(Astro)
-if (redirect) return redirect
+const response = Locale.response(Astro)
+if (response) return response
 
 const locale = Locale.from(Astro.url)
 ---
