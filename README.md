@@ -169,18 +169,18 @@ const t = Locale.t(Astro.url)
 </Layout>
 ```
 
-**In `static` and `hybrid` mode**, unprefixed paths are not redirected automatically. Use `Locale.redirect(Astro)` at the top of your 404 page — it redirects to the locale-prefixed equivalent using the cookie locale, falling back to `defaultLocale`. Locale-prefixed paths like `/en/banana` pass through and render the 404 content directly.
+**In `hybrid` and `server` mode**, unprefixed paths are not redirected automatically. Use `Locale.response(Astro)` at the top of your 404 page — it returns a redirect `Response` to the locale-prefixed equivalent using the cookie locale, falling back to `defaultLocale`. Locale-prefixed paths like `/en/banana` pass through and render the 404 content directly.
 
 ```astro
 ---
-// src/pages/404.astro (static and hybrid mode)
+// src/pages/404.astro (hybrid and server mode)
 export const prerender = false
 
 import { Locale } from "@mannisto/astro-i18n/runtime"
 import Layout from "@layouts/Layout.astro"
 
-const redirect = Locale.redirect(Astro)
-if (redirect) return redirect
+const response = Locale.response(Astro)
+if (response) return response
 
 const t = Locale.t(Astro.url)
 ---
@@ -199,7 +199,7 @@ Pages prebuilt at build time. The injected root route runs client-side, reads th
 
 - Works on any CDN with no adapter
 - First-time visitors may briefly see the root URL before being redirected
-- Unprefixed paths like `/about` are not auto-redirected — handle them in `404.astro` with `Locale.redirect(Astro)`
+- Unprefixed paths like `/about` are not auto-redirected — handle them in `404.astro` with `Locale.response(Astro)`
 
 ### `server`
 
@@ -215,7 +215,7 @@ Pages prerendered for performance. The injected root route is server-rendered fo
 
 - Requires a Node adapter
 - No flash on first visit
-- Unprefixed paths like `/about` are not auto-redirected — handle them in `404.astro` with `Locale.redirect(Astro)`
+- Unprefixed paths like `/about` are not auto-redirected — handle them in `404.astro` with `Locale.response(Astro)`
 
 ## Language switcher
 
@@ -283,16 +283,18 @@ export const onRequest = sequence(i18nMiddleware, myMiddleware)
 | `Locale.url("fi", "/about")` | `"/fi/about"` |
 | `Locale.url("fi", Astro.url.pathname)` | `"/fi/current-path"` |
 
-### Locale.redirect
+### Locale.response
 
-`Locale.redirect(Astro)` returns a redirect `Response` if the URL has no locale prefix, or `null` if it does. Uses the cookie locale if available, falls back to `defaultLocale`. Invalid cookie values are ignored.
+`Locale.response(Astro)` returns a redirect `Response` if the URL has no locale prefix, or `null` if it does. Uses the cookie locale if available, falls back to `defaultLocale`. Invalid cookie values are ignored.
 
-Use it at the top of `404.astro` in `static` and `hybrid` mode:
+Use it at the top of `404.astro` in `hybrid` and `server` mode:
 
 ```astro
-const redirect = Locale.redirect(Astro)
-if (redirect) return redirect
+const response = Locale.response(Astro)
+if (response) return response
 ```
+
+> `Locale.redirect()` is deprecated — use `Locale.response()` instead.
 
 ### Locale.hreflang
 
