@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 const resolvedConfig = {
   locales: [
     { code: "en", name: "English", endonym: "English" },
-    { code: "fi", name: "Finnish", endonym: "Suomi", phrase: "Suomeksi" },
+    { code: "fi", name: "Finnish", endonym: "Suomi", phrase: "Suomeksi", direction: "rtl" },
   ],
   mode: "server",
   defaultLocale: "en",
@@ -70,11 +70,26 @@ describe("Locale.get", () => {
       name: "Finnish",
       endonym: "Suomi",
       phrase: "Suomeksi",
+      direction: "rtl",
     })
   })
 
   it("throws for an unknown locale code", () => {
     expect(() => Locale.get("de")).toThrow('Locale "de" not found.')
+  })
+})
+
+describe("Locale.direction", () => {
+  it("returns the configured direction for the locale in the URL", () => {
+    expect(Locale.direction(new URL("https://example.com/fi/about"))).toBe("rtl")
+  })
+
+  it('defaults to "ltr" when no direction is configured', () => {
+    expect(Locale.direction(new URL("https://example.com/en/about"))).toBe("ltr")
+  })
+
+  it("falls back to defaultLocale when URL has no locale prefix", () => {
+    expect(Locale.direction(new URL("https://example.com/about"))).toBe("ltr")
   })
 })
 

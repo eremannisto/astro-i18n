@@ -31,6 +31,30 @@ describe("Validate.config", () => {
     ).toThrow('Locale "en" is missing an endonym.')
   })
 
+  it("throws if a locale has an invalid direction", () => {
+    expect(() =>
+      Validate.config({
+        locales: [{ code: "en", name: "English", endonym: "English", direction: "btt" as never }],
+      })
+    ).toThrow('Locale "en" has an invalid direction "btt". Must be "ltr" or "rtl".')
+  })
+
+  it("passes with direction ltr", () => {
+    expect(() =>
+      Validate.config({
+        locales: [{ code: "en", name: "English", endonym: "English", direction: "ltr" }],
+      })
+    ).not.toThrow()
+  })
+
+  it("passes with direction rtl", () => {
+    expect(() =>
+      Validate.config({
+        locales: [{ code: "ar", name: "Arabic", endonym: "العربية", direction: "rtl" }],
+      })
+    ).not.toThrow()
+  })
+
   it("throws if defaultLocale is not in locales", () => {
     expect(() =>
       Validate.config({

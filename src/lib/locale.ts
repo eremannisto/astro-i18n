@@ -93,6 +93,14 @@ export const Locale = {
   get: getLocale,
 
   /**
+   * Returns the text direction for the locale derived from the given URL.
+   * Defaults to "ltr" if no direction is configured.
+   */
+  direction(url: URL): "ltr" | "rtl" {
+    return getLocale(Locale.from(url)).direction ?? "ltr"
+  },
+
+  /**
    * Returns a translation function for the specified locale.
    * The returned function accepts a translation key and returns the translated string.
    * Throws if translations are not configured or if a key is missing.
