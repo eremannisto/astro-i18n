@@ -45,8 +45,8 @@
       "types": "./dist/detect/hybrid.d.ts",
       "default": "./dist/detect/hybrid.js"
     },
-    "./components/locale-cookie": {
-      "default": "./src/components/LocaleCookie.astro"
+    "./components": {
+      "default": "./src/components/index.ts"
     }
   },
   "typesVersions": {
@@ -65,6 +65,9 @@
       ],
       "detect/hybrid": [
         "./dist/detect/hybrid.d.ts"
+      ],
+      "components": [
+        "./src/components/index.ts"
       ]
     }
   },

@@ -1,5 +1,5 @@
 ---
-import LocaleCookie from "@mannisto/astro-i18n/components"
+import { LocaleCookie } from "@mannisto/astro-i18n/components"
 import { Locale } from "@mannisto/astro-i18n/runtime"
 
 export const getStaticPaths = () => Locale.supported.map((code) => ({ params: { locale: code } }))
