@@ -44,6 +44,9 @@
     "./detect/hybrid": {
       "types": "./dist/detect/hybrid.d.ts",
       "default": "./dist/detect/hybrid.js"
+    },
+    "./components": {
+      "default": "./src/components/index.ts"
     }
   },
   "typesVersions": {
@@ -62,11 +65,15 @@
       ],
       "detect/hybrid": [
         "./dist/detect/hybrid.d.ts"
+      ],
+      "components": [
+        "./src/components/index.ts"
       ]
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "src/components"
   ],
   "scripts": {
     "build": "tsup",

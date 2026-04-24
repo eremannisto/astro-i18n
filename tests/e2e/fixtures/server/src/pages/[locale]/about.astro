@@ -1,4 +1,5 @@
 ---
+import { LocaleCookie } from "@mannisto/astro-i18n/components"
 import { Locale } from "@mannisto/astro-i18n/runtime"
 
 export const prerender = false
@@ -11,9 +12,7 @@ const t = Locale.use(locale)
   <head>
     <meta charset="UTF-8" />
     <title>{t("nav.about")}</title>
-    <script is:inline define:vars={{ locale }}>
-      document.cookie = `locale=${locale}; path=/; SameSite=Lax; Max-Age=31536000`
-    </script>
+    <LocaleCookie {locale} />
   </head>
   <body>
     <h1 data-testid="title">{t("nav.about")}</h1>

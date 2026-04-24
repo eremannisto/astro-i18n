@@ -1,0 +1,22 @@
+---
+export interface Props {
+  locale: string
+  age?: number
+}
+
+const { locale, age = 31536000 } = Astro.props
+---
+
+<script is:inline define:vars={{ locale, age }}>
+  if ("cookieStore" in window) {
+    void window.cookieStore.set({
+      name: "locale",
+      value: locale,
+      path: "/",
+      sameSite: "lax",
+      expires: Date.now() + age * 1000,
+    })
+  } else {
+    document.cookie = `locale=${locale}; path=/; SameSite=Lax; Max-Age=${age}`
+  }
+</script>
