@@ -28,6 +28,11 @@ export const Validate = {
       if (!locale.endonym) {
         throw new Error(`${NAME} Locale "${locale.code}" is missing an endonym.`)
       }
+      if (locale.direction && locale.direction !== "ltr" && locale.direction !== "rtl") {
+        throw new Error(
+          `${NAME} Locale "${locale.code}" has an invalid direction "${locale.direction}". Must be "ltr" or "rtl".`
+        )
+      }
     }
 
     // One of the defined locales must be the defaultLocale
