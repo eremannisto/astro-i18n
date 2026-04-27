@@ -22,10 +22,7 @@
       "trailingCommas": "es5"
     }
   },
-  "html": {
-    "experimentalFullSupportEnabled": true,
-    "formatter": { "selfCloseVoidElements": "always" }
-  },
+  "html": { "formatter": { "selfCloseVoidElements": "always" } },
   "linter": {
     "rules": {
       "recommended": true,
