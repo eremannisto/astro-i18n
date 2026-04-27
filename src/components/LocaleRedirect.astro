@@ -15,6 +15,6 @@ const defaultLocale = Locale.defaultLocale
       .find((r) => r.startsWith("locale="))
       ?.split("=")[1]
     const locale = stored && supported.includes(stored) ? stored : defaultLocale
-    window.location.replace("/" + locale + pathname)
+    window.location.replace(`/${locale}${pathname}`)
   }
 </script>

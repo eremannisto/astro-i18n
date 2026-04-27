@@ -17,6 +17,7 @@ const { locale, age = 31536000 } = Astro.props
       expires: Date.now() + age * 1000,
     })
   } else {
+    // biome-ignore lint/suspicious/noDocumentCookie: Cookie Store API not available
     document.cookie = `locale=${locale}; path=/; SameSite=Lax; Max-Age=${age}`
   }
 </script>
