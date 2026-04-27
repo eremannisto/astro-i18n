@@ -1,5 +1,5 @@
 ---
-import { LocaleCookie } from "@mannisto/astro-i18n/components"
+import { LocaleCookie, LocaleHreflang } from "@mannisto/astro-i18n/components"
 import { Locale } from "@mannisto/astro-i18n/runtime"
 
 export const prerender = false
@@ -13,6 +13,7 @@ const t = Locale.use(locale)
     <meta charset="UTF-8" />
     <title>{t("nav.home")}</title>
     <LocaleCookie {locale} />
+    <LocaleHreflang url={Astro.url} site={Astro.site ?? Astro.url.origin} />
   </head>
   <body>
     <h1 data-testid="title">{t("nav.home")}</h1>
