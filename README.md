@@ -367,7 +367,7 @@ import { LocaleCookie } from "@mannisto/astro-i18n/components"
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `locale` | `string` | required | Current locale code |
+| `locale` | `string` | — | Current locale code |
 | `age` | `number` | `31536000` | Cookie max-age in seconds |
 
 ### `LocaleHreflang`
@@ -377,13 +377,14 @@ Renders `<link rel="alternate">` hreflang tags for all supported locales plus `x
 ```astro
 import { LocaleHreflang } from "@mannisto/astro-i18n/components"
 
-<LocaleHreflang url={Astro.url} site={Astro.site ?? Astro.url.origin} />
+const site = Astro.site ?? Astro.url.origin
+<LocaleHreflang url={Astro.url} site={site} />
 ```
 
 | Prop | Type | Description |
 |------|------|-------------|
-| `url` | `URL` | Current page URL. Pass `Astro.url`. |
-| `site` | `URL \| string` | Base site URL. Pass `Astro.site ?? Astro.url.origin`. |
+| `url` | `URL` | Current page URL |
+| `site` | `URL \| string` | Base site URL |
 
 ### `LocaleRedirect`
 
