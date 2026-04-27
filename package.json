@@ -78,9 +78,9 @@
   "scripts": {
     "build": "tsup",
     "prepublishOnly": "pnpm build",
-    "lint": "eslint . --fix",
-    "format": "prettier --write .",
-    "check": "eslint . && prettier --check .",
+    "lint": "biome lint --write .",
+    "format": "biome format --write .",
+    "check": "biome check .",
     "test:unit": "vitest run",
     "test:e2e": "pnpm build > /dev/null 2>&1 && playwright test",
     "test": "pnpm run test:unit && pnpm run test:e2e"
@@ -89,20 +89,14 @@
     "astro": "^5.0.0 || ^6.0.0"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "@ianvs/prettier-plugin-sort-imports": "^4.7.1",
+    "@biomejs/biome": "^2.4.13",
     "@playwright/test": "^1.59.1",
     "@types/node": "^22.19.17",
     "@types/picomatch": "^4.0.3",
     "astro": "^6.1.9",
-    "eslint": "^10.2.1",
-    "eslint-config-prettier": "^10.1.8",
     "picomatch": "^4.0.4",
-    "prettier": "^3.8.3",
-    "prettier-plugin-astro": "^0.14.1",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.59.0",
     "vitest": "^4.1.5"
   },
   "packageManager": "pnpm@10.32.1+sha512.a706938f0e89ac1456b6563eab4edf1d1faf3368d1191fc5c59790e96dc918e4456ab2e67d613de1043d2e8c81f87303e6b40d4ffeca9df15ef1ad567348f2be"
