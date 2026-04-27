@@ -1,0 +1,13 @@
+---
+import { Locale } from "@mannisto/astro-i18n/runtime"
+
+export interface Props {
+  url: URL
+  site: URL | string
+}
+
+const { url, site } = Astro.props
+const alternates = Locale.hreflang(url, site.toString())
+---
+
+{alternates.map(({ href, hreflang }) => <link rel="alternate" href={href} hreflang={hreflang} />)}
