@@ -1,4 +1,4 @@
-# Astro Internationalization (i18n)
+# Astro Internationalization
 
 ![banner](./assets/banner.png)
 

@@ -1,6 +1,6 @@
+import { config } from "virtual:astro-i18n/config"
 import { defineMiddleware } from "astro/middleware"
 import pm from "picomatch"
-import { config } from "virtual:astro-i18n/config"
 
 import type { LocaleConfig } from "./types"
 

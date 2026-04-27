@@ -1,5 +1,5 @@
-import type { APIRoute } from "astro"
 import { config } from "virtual:astro-i18n/config"
+import type { APIRoute } from "astro"
 
 import type { LocaleConfig } from "../types"
 

@@ -1,7 +1,7 @@
 // src/middleware.ts
+import { config } from "virtual:astro-i18n/config";
 import { defineMiddleware } from "astro/middleware";
 import pm from "picomatch";
-import { config } from "virtual:astro-i18n/config";
 function expandPattern(pattern) {
   if (pattern.includes("*")) return [pattern];
   return [pattern, `${pattern}/**`];

@@ -75,6 +75,6 @@ export const Translations = {
  * Lazy fs import — only works at build time / Node environment
  */
 function await_fs() {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  // biome-ignore lint/style/noCommonJs: lazy fs import, only available in Node at build time
   return require("node:fs")
 }
