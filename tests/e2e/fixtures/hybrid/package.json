@@ -8,8 +8,8 @@
     "preview": "astro preview"
   },
   "dependencies": {
-    "@astrojs/node": "^9.5.5",
+    "@astrojs/node": "^10.0.6",
     "@mannisto/astro-i18n": "workspace:*",
-    "astro": "^6.1.4"
+    "astro": "^6.1.9"
   }
 }

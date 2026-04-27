@@ -95,3 +95,33 @@ test.describe("static mode — 404 handling", () => {
     await expect(page.getByTestId("not-found")).toHaveText("404")
   })
 })
+
+test.describe("static mode — hreflang", () => {
+  test("renders hreflang tags for all locales and x-default", async ({ page }) => {
+    await page.goto("/en/")
+    await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute(
+      "href",
+      /\/en\/$/
+    )
+    await expect(page.locator('link[rel="alternate"][hreflang="fi"]')).toHaveAttribute(
+      "href",
+      /\/fi\/$/
+    )
+    await expect(page.locator('link[rel="alternate"][hreflang="x-default"]')).toHaveAttribute(
+      "href",
+      /\/en\/$/
+    )
+  })
+
+  test("swaps locale in hrefs when on Finnish page", async ({ page }) => {
+    await page.goto("/fi/")
+    await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute(
+      "href",
+      /\/en\/$/
+    )
+    await expect(page.locator('link[rel="alternate"][hreflang="fi"]')).toHaveAttribute(
+      "href",
+      /\/fi\/$/
+    )
+  })
+})
