@@ -1,7 +1,0 @@
-**/node_modules
-tests/e2e/results
-dist
-.github
-*.md
-.pnpm-store
-pnpm-lock.yaml
