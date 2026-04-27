@@ -3,38 +3,25 @@
 ## Setup
 
 ```bash
-# install dependencies and playwright browsers
-pnpm install
-pnpm exec playwright install
+pnpm install                 # Install dependencies and 
+pnpm exec playwright install # Install playwright browsers
 ```
 
 ## Development
 
 ```bash
-# build the package
-pnpm build
-
-# lint
-pnpm lint
-
-# check (lint + formatting)
-pnpm check
-
-# format
-pnpm format
+pnpm run build  # Build the package
+pnpm run lint   # Lint code
+pnpm run check  # Check code
+pnpm run format # Format code
 ```
 
 ## Testing
 
 ```bash
-# run unit tests
-pnpm test:unit
-
-# run e2e tests
-pnpm test:e2e
-
-# run all tests
-pnpm test
+pnpm test:unit # Run unit tests
+pnpm test:e2e  # Run e2e tests
+pnpm test      # Run all tests
 ```
 
 ## Publishing
@@ -45,10 +32,11 @@ git checkout main
 git fetch origin
 git pull origin main
 
-# Bump version in package.json, then run all tests
+# Run all tests
 pnpm test
 
-# Create and push a version tag
+# Bump version number and create 
+# and push a version tag
 git tag v1.x.x
 git push origin v1.x.x
 
