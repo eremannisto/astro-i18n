@@ -26,8 +26,6 @@ var onRequest = defineMiddleware(({ url, cookies, redirect, isPrerendered }, nex
   const targetLocale = stored && codes.includes(stored) ? stored : config.defaultLocale;
   return redirect(`/${targetLocale}${pathname}`, 302);
 });
-var i18nMiddleware = onRequest;
 export {
-  i18nMiddleware,
   onRequest
 };
