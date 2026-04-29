@@ -1,0 +1,21 @@
+---
+import { Locale } from "@mannisto/astro-i18n/runtime"
+
+export const prerender = false
+
+const locale = Locale.use(Astro)
+const redirect = locale.response()
+if (redirect) return redirect
+
+const { code } = locale
+---
+
+<html lang={code}>
+  <head>
+    <meta charset="UTF-8" />
+    <title>404</title>
+  </head>
+  <body>
+    <h1 data-testid="not-found">404</h1>
+  </body>
+</html>
