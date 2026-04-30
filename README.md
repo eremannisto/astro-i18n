@@ -2,10 +2,10 @@
 
 ![banner](./assets/banner.png)
 
-![Astro](https://img.shields.io/badge/astro-%232C2052.svg?style=plastic&logo=astro&logoColor=white)
-![astro peer dependency](https://img.shields.io/npm/dependency-version/@mannisto/astro-i18n/peer/astro?style=plastic)
-![npm version](https://img.shields.io/npm/v/@mannisto/astro-i18n?style=plastic&logo=npm)
+![npm version](https://img.shields.io/npm/v/@mannisto/astro-i18n?style=plastic)
 ![license](https://img.shields.io/badge/license-MIT-green?style=plastic)
+![Astro](https://img.shields.io/badge/astro-%232C2052.svg?style=plastic&logo=astro&logoColor=white)
+<!-- ![astro peer dependency](https://img.shields.io/npm/dependency-version/@mannisto/astro-i18n/peer/astro?style=plastic) -->
 
 A flexible alternative to Astro's built-in internationalization, with locale routing, detection, and translations for static and SSR sites.
 
