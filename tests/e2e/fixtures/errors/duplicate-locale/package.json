@@ -1,0 +1,12 @@
+{
+  "name": "astro-i18n-fixture-errors-duplicate-locale",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev"
+  },
+  "dependencies": {
+    "@mannisto/astro-i18n": "workspace:*",
+    "astro": "^6.1.9"
+  }
+}

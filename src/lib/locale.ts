@@ -1,8 +1,7 @@
 import { config, translations } from "virtual:astro-i18n/config"
 
-import type { LocaleCode, LocaleConfig } from "../types"
-
-const NAME = "@mannisto/astro-i18n"
+import { NAME } from "../constants"
+import type { AstroContext, LocaleCode, LocaleConfig, LocaleInstance } from "../types"
 
 /**
  * Sets a cookie using the Cookie Store API if available, otherwise falls back to document.cookie.
@@ -10,10 +9,10 @@ const NAME = "@mannisto/astro-i18n"
 function setCookie(name: string, value: string): void {
   if ("cookieStore" in window) {
     void window.cookieStore.set({ name, value, path: "/", sameSite: "lax" })
-  } else {
-    // biome-ignore lint/suspicious/noDocumentCookie: Cookie Store API not available
-    document.cookie = `${name}=${value}; path=/; SameSite=Lax`
+    return
   }
+  // biome-ignore lint/suspicious/noDocumentCookie: Cookie Store API not available
+  document.cookie = `${name}=${value}; path=/; SameSite=Lax`
 }
 
 /**
@@ -29,6 +28,43 @@ function getLocale(code?: LocaleCode): LocaleConfig | LocaleConfig[] {
     return found
   }
   return config.locales
+}
+
+/**
+ * Returns a translation lookup function for the given locale.
+ * Throws at call time if translations are not configured or a key is missing.
+ */
+function buildTranslator(code: LocaleCode): (key: string) => string {
+  if (!config.translations) {
+    return (key: string) => {
+      throw new Error(
+        `${NAME} t("${key}") was called but translations are not configured. ` +
+          `Add a translations path to your i18n config to enable translations.`
+      )
+    }
+  }
+  const record = translations[code]
+  if (!record) throw new Error(`${NAME} No translations found for locale "${code}".`)
+  return (key: string): string => {
+    if (!(key in record))
+      throw new Error(`${NAME} Missing translation key "${key}" in ${code}.json`)
+    return record[key]
+  }
+}
+
+/**
+ * Returns a response function that redirects to the correct locale prefix if missing.
+ * Returns null if the URL already has a valid locale prefix.
+ */
+function buildResponse(astro: AstroContext): () => Response | null {
+  return () => {
+    const firstSegment = astro.url.pathname.split("/").filter(Boolean)[0]
+    const codes = config.locales.map((l: LocaleConfig) => l.code)
+    if (codes.includes(firstSegment)) return null
+    const cookie = astro.cookies.get("locale")?.value
+    const locale = cookie && codes.includes(cookie) ? cookie : config.defaultLocale
+    return astro.redirect(`/${locale}${astro.url.pathname}`, 302)
+  }
 }
 
 /**
@@ -54,7 +90,7 @@ export const Locale = {
    * Extracts the locale code from a URL pathname.
    * Falls back to the default locale if no valid locale prefix is found.
    */
-  from(url: URL): LocaleCode {
+  fromURL(url: URL): LocaleCode {
     const first = url.pathname.split("/")[1]
     const codes = config.locales.map((l: LocaleConfig) => l.code)
     return codes.includes(first) ? first : config.defaultLocale
@@ -93,67 +129,26 @@ export const Locale = {
   get: getLocale,
 
   /**
-   * Returns the text direction for the locale derived from the given URL.
-   * Defaults to "ltr" if no direction is configured.
+   * Accepts the full Astro context and returns a request-scoped instance.
+   * All instance members are bound at creation time and safe to destructure.
    */
-  direction(url: URL): "ltr" | "rtl" {
-    return getLocale(Locale.from(url)).direction ?? "ltr"
-  },
-
-  /**
-   * Returns a translation function for the specified locale.
-   * The returned function accepts a translation key and returns the translated string.
-   * Throws if translations are not configured or if a key is missing.
-   */
-  use(locale: LocaleCode): (key: string) => string {
-    if (!config.translations) {
-      console.warn(
-        `${NAME} Locale.use() was called but translations are not configured. ` +
-          `Add a translations path to your i18n config to enable translations.`
-      )
-      return () => ""
+  use(astro: AstroContext): LocaleInstance {
+    const code = Locale.fromURL(astro.url)
+    const localeConfig = getLocale(code)
+    return {
+      code,
+      name: localeConfig.name,
+      endonym: localeConfig.endonym,
+      phrase: localeConfig.phrase,
+      direction: localeConfig.direction ?? "ltr",
+      t: buildTranslator(code),
+      response: buildResponse(astro),
     }
-
-    const record = translations[locale]
-    if (!record) throw new Error(`${NAME} No translations found for locale "${locale}".`)
-
-    return (key: string): string => {
-      if (!(key in record)) {
-        throw new Error(`${NAME} Missing translation key "${key}" in ${locale}.json`)
-      }
-      return record[key]
-    }
-  },
-
-  /**
-   * Shorthand for Locale.use(Locale.from(url)).
-   * Returns a translation function for the locale derived from the given URL.
-   * Use this when you just need translations for the current page.
-   *
-   * @example
-   * ---
-   * const t = Locale.t(Astro.url)
-   * ---
-   * <h1>{t("nav.home")}</h1>
-   */
-  t(url: URL): (key: string) => string {
-    return Locale.use(Locale.from(url))
   },
 
   /**
    * Generates hreflang link objects for all supported locales, plus an x-default entry.
    * Useful for rendering <link rel="alternate"> tags for SEO.
-   *
-   * For pages with the same slug across all locales, this works automatically.
-   * For pages with translated slugs, build the array manually instead.
-   *
-   * @example
-   * ---
-   * const alternates = Locale.hreflang(Astro.url, Astro.site ?? Astro.url.origin)
-   * ---
-   * {alternates.map(({ href, hreflang }) => (
-   *   <link rel="alternate" href={href} hreflang={hreflang} />
-   * ))}
    */
   hreflang(url: URL, site: string | URL): { href: string; hreflang: string }[] {
     const base = typeof site === "string" ? site : site.href
@@ -167,56 +162,5 @@ export const Locale = {
         hreflang: "x-default",
       },
     ]
-  },
-
-  /**
-   * Checks if the current URL is missing a locale prefix and returns a redirect
-   * Response if so. Should be called at the top of 404.astro in hybrid and
-   * server mode to handle unprefixed paths gracefully.
-   *
-   * Uses the locale cookie if available, otherwise falls back to defaultLocale.
-   * Returns a redirect Response if a redirect is needed, or null if the URL
-   * already has a valid locale prefix and the 404 page should render normally.
-   *
-   * @example
-   * ---
-   * // src/pages/404.astro
-   * import { Locale } from "@mannisto/astro-i18n/runtime"
-   * export const prerender = false
-   *
-   * const response = Locale.response(Astro)
-   * if (response) return response
-   *
-   * const locale = Locale.from(Astro.url)
-   * ---
-   */
-  response(astro: {
-    url: URL
-    cookies: { get(name: string): { value: string } | undefined }
-    redirect(path: string, status?: number): Response
-  }): Response | null {
-    const pathname = astro.url.pathname
-    const codes = config.locales.map((l: LocaleConfig) => l.code)
-    const firstSegment = pathname.split("/").filter(Boolean)[0]
-
-    // URL already has a valid locale prefix — render the 404 page normally
-    if (codes.includes(firstSegment)) return null
-
-    // No locale prefix — redirect to the locale-prefixed version
-    const cookie = astro.cookies.get("locale")?.value
-    const locale = cookie && codes.includes(cookie) ? cookie : config.defaultLocale
-
-    return astro.redirect(`/${locale}${pathname}`, 302)
-  },
-
-  /**
-   * @deprecated Use `Locale.response()` instead.
-   */
-  redirect(astro: {
-    url: URL
-    cookies: { get(name: string): { value: string } | undefined }
-    redirect(path: string, status?: number): Response
-  }): Response | null {
-    return Locale.response(astro)
   },
 }

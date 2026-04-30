@@ -3,15 +3,13 @@ import type { APIRoute } from "astro"
 
 import type { LocaleConfig } from "../types"
 
-// Injected at / when mode is "server".
-//
-// Reads the locale cookie to find a stored preference. If none exists,
-// falls back to the defaultLocale. Never assumes the user's language from
-// Accept-Language or any other header — the developer's defaultLocale is
-// the only fallback.
-//
-// Sets the cookie with SameSite=Lax and Secure for HTTPS sites, then
-// redirects to the appropriate locale URL.
+/**
+ * Injected at `/` when `output: "server"` is configured.
+ *
+ * Reads the locale cookie for a stored preference, falls back to `defaultLocale`
+ * — never infers locale from `Accept-Language` or other headers. Sets the cookie
+ * and redirects to the appropriate `/[locale]/` URL.
+ */
 export const prerender = false
 
 export const GET: APIRoute = ({ cookies, redirect }) => {

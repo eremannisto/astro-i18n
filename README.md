@@ -2,21 +2,22 @@
 
 ![banner](./assets/banner.png)
 
-![npm version](https://img.shields.io/npm/v/@mannisto/astro-i18n)
-![license](https://img.shields.io/badge/license-MIT-green)
-![astro peer dependency](https://img.shields.io/npm/dependency-version/@mannisto/astro-i18n/peer/astro)
+![Astro](https://img.shields.io/badge/astro-%232C2052.svg?style=for-the-badge&logo=astro&logoColor=white)
+![npm version](https://img.shields.io/npm/v/@mannisto/astro-i18n?style=for-the-badge)
+![license](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
 
 A flexible alternative to Astro's built-in internationalization, with locale routing, detection, and translations for static and SSR sites.
 
 ## Installation
 
 ```bash
-pnpm add @mannisto/astro-i18n
+npm install @mannisto/astro-i18n
 ```
 
 ```bash
-npm install @mannisto/astro-i18n
+pnpm add @mannisto/astro-i18n
 ```
+
 
 ```bash
 yarn add @mannisto/astro-i18n
@@ -34,17 +35,13 @@ import i18n from "@mannisto/astro-i18n"
 export default defineConfig({
   integrations: [
     i18n({
-      /**
-       * Supported locales in order of preference.
-       * @required
-       */
       locales: [
         {
           code: "en",           // Used in URLs: /en/about
-          name: "English",      // Display name in English
-          endonym: "English",   // Display name in its own language
-          phrase: "In English", // Optional — for locale switchers
-          direction: "ltr",     // Optional — defaults to "ltr"
+          name: "English",      // Display name in English (optional)
+          endonym: "English",   // Display name in its own language (optional)
+          phrase: "In English", // For locale switchers (optional)
+          direction: "ltr",     // Defaults to "ltr" (optional)
         },
         {
           code: "fi",
@@ -54,28 +51,14 @@ export default defineConfig({
         },
       ],
 
-      /**
-       * Default: first locale in the list.
-       * @optional
-       */
+      // Defaults to the first locale in the list
       defaultLocale: "en",
 
-      /**
-       * Controls locale detection behaviour. Default: "static". See Modes below.
-       * @optional
-       */
-      mode: "static",
-
-      /**
-       * Path to translation JSON files. Omit to disable translations.
-       * @optional
-       */
+      // Path to translation JSON files. Omit to disable translations.
       translations: "./src/translations",
 
-      /**
-       * URL paths that bypass the middleware. Server and hybrid mode only. Glob patterns supported.
-       * @optional
-       */
+      // URL paths that bypass the middleware. Requires a server adapter.
+      // Glob patterns supported.
       ignore: ["/keystatic", "/api/uploads/**/*.png"],
     }),
   ],
@@ -98,63 +81,54 @@ src/
     └── fi.json
 ```
 
-> ⚠️ Do not create `src/pages/index.astro`. The integration injects its own root route for locale detection, and a conflicting file will cause a build error.
+> ⚠ Do not create `src/pages/index.astro`. The integration injects its own root route for locale detection, and a conflicting file will cause a build error.
 
-## Choosing a mode
+## Rendering modes
 
-Choose a mode that matches your site's output. Use `static` for fully static sites, `server` for fully server-rendered sites, and `hybrid` when you want static locale pages with a server-rendered entry point.
+Your Astro `output` and `adapter` choice map to three rendering modes:
 
-### Static
-
-The default mode. All pages are built as static files at compile time. When a visitor lands on `/`, the browser runs a small script that checks their saved locale preference and redirects them to the correct locale URL.
-
-- No server adapter required
-- Locale pages built at compile time
-- Root `/` redirect handled client-side
-
-### Server
-
-All pages are rendered on demand. When a visitor lands on `/` or any path without a locale prefix, the server reads their locale preference from a cookie and redirects them before any HTML is sent.
-
-- Requires a server adapter (e.g. `@astrojs/node`)
-- Locale pages rendered per request
-- All redirects handled server-side via middleware
-
-### Hybrid
-
-Locale pages such as `/en/about` are built as static files, but the root `/` and 404 page are handled server-side. This gives you static locale pages with server-side redirect handling at the entry point.
-
-- Requires a server adapter (e.g. `@astrojs/node`)
-- Locale pages built at compile time
-- Root `/` redirect handled server-side
+| Mode     | Output             | Adapter | Behaviour     |
+|----------|--------------------|:-------:|---------------|
+| `Static` | `output: "static"` | No      | Fully static  |
+| `Hybrid` | `output: "static"` | Yes     | Mostly static |
+| `Server` | `output: "server"` | N/A     | Fully server  |
 
 ## Locale pages
 
-### Building a locale page
+How you write locale pages depends on your rendering mode.
 
-In `static` and `hybrid` mode, use `getStaticPaths` to generate a page for each supported locale at compile time:
+### Static & Hybrid
+
+Use `getStaticPaths` to generate a page for each locale at build time.
 
 ```astro
 ---
 // src/pages/[locale]/index.astro
 import { Locale } from "@mannisto/astro-i18n/runtime"
-import Layout from "@layouts/Layout.astro"
 
 export const getStaticPaths = () => {
-  return Locale.supported.map((code) => ({
-    params: { locale: code },
-  }))
+  return Locale.supported.map((code) => {
+    return {
+      params: {
+        locale: code,
+      },
+    }
+  })
 }
 
-const t = Locale.t(Astro.url)
+const { code, t } = Locale.use(Astro)
 ---
 
-<Layout>
-  <h1>{t("nav.home")}</h1>
-</Layout>
+<html lang={code}>
+  <body>
+    <h1>{t("nav.home")}</h1>
+  </body>
+</html>
 ```
 
-In `server` mode, omit `getStaticPaths` and add `export const prerender = false`. Without it, Astro throws a `GetStaticPathsRequired` error even when a server adapter is configured.
+### Server
+
+Skip `getStaticPaths` and mark pages as not prerendered.
 
 ```astro
 ---
@@ -162,23 +136,24 @@ In `server` mode, omit `getStaticPaths` and add `export const prerender = false`
 export const prerender = false
 
 import { Locale } from "@mannisto/astro-i18n/runtime"
-import Layout from "@layouts/Layout.astro"
 
-const t = Locale.t(Astro.url)
+const { code, t } = Locale.use(Astro)
 ---
 
-<Layout>
-  <h1>{t("nav.home")}</h1>
-</Layout>
+<html lang={code}>
+  <body>
+    <h1>{t("nav.home")}</h1>
+  </body>
+</html>
 ```
 
-### The 404 page
+## The 404 page
 
-Any URL without a locale prefix lands on the 404 page. The 404 page detects the user's locale preference and redirects to the correct URL, making it a key part of the routing setup. How this is handled depends on the mode.
+The 404 page handles visitors who land on an unprefixed URL like `/about`. What you need depends on your setup.
 
-#### Static
+### Static
 
-Without a server, the redirect happens in the browser. Place `<LocaleRedirect>` in the head.
+The browser handles the redirect. Add `<LocaleRedirect>` to `<head>`.
 
 ```astro
 ---
@@ -186,10 +161,10 @@ Without a server, the redirect happens in the browser. Place `<LocaleRedirect>` 
 import { LocaleRedirect } from "@mannisto/astro-i18n/components"
 import { Locale } from "@mannisto/astro-i18n/runtime"
 
-const locale = Locale.from(Astro.url)
+const { code } = Locale.use(Astro)
 ---
 
-<html lang={locale}>
+<html lang={code}>
   <head>
     <LocaleRedirect />
     <title>404</title>
@@ -200,9 +175,9 @@ const locale = Locale.from(Astro.url)
 </html>
 ```
 
-#### Server
+### Hybrid
 
-The middleware catches unprefixed paths before they reach the 404 page. No additional handling is needed here.
+The server handles the redirect. Call `response()` and return it if present.
 
 ```astro
 ---
@@ -211,10 +186,12 @@ export const prerender = false
 
 import { Locale } from "@mannisto/astro-i18n/runtime"
 
-const locale = Locale.from(Astro.url)
+const { code, response } = Locale.use(Astro)
+const redirect = response()
+if (redirect) return redirect
 ---
 
-<html lang={locale}>
+<html lang={code}>
   <head>
     <title>404</title>
   </head>
@@ -224,9 +201,9 @@ const locale = Locale.from(Astro.url)
 </html>
 ```
 
-#### Hybrid
+### Server
 
-Locale pages are static, so some unprefixed paths reach the 404 page directly. Use `Locale.response()` to redirect server-side.
+The middleware redirects unprefixed paths before they reach the 404 page. No extra handling needed.
 
 ```astro
 ---
@@ -235,13 +212,10 @@ export const prerender = false
 
 import { Locale } from "@mannisto/astro-i18n/runtime"
 
-const response = Locale.response(Astro)
-if (response) return response
-
-const locale = Locale.from(Astro.url)
+const { code } = Locale.use(Astro)
 ---
 
-<html lang={locale}>
+<html lang={code}>
   <head>
     <title>404</title>
   </head>
@@ -255,7 +229,7 @@ const locale = Locale.from(Astro.url)
 
 Each locale page needs `<LocaleCookie>` in the `<head>` to persist the current locale to a cookie. A shared layout is a convenient place for it, but it can be added to each page directly as well.
 
-`<LocaleHreflang>` renders `<link rel="alternate">` hreflang tags for all supported locales. It is optional, but recommended for SEO.
+`<LocaleHreflang>` renders `<link rel="alternate">` tags for all supported locales. Optional but recommended for SEO.
 
 ```astro
 ---
@@ -263,14 +237,14 @@ Each locale page needs `<LocaleCookie>` in the `<head>` to persist the current l
 import { Locale } from "@mannisto/astro-i18n/runtime"
 import { LocaleCookie, LocaleHreflang } from "@mannisto/astro-i18n/components"
 
-const locale = Locale.from(Astro.url)
+const { code } = Locale.use(Astro)
 const site = Astro.site ?? Astro.url.origin
 ---
 
-<html lang={locale}>
+<html lang={code}>
   <head>
     <meta charset="UTF-8" />
-    <LocaleCookie locale={locale} />
+    <LocaleCookie locale={code} />
     <LocaleHreflang url={Astro.url} site={site} />
   </head>
   <body>
@@ -281,7 +255,7 @@ const site = Astro.site ?? Astro.url.origin
 
 ## Translations
 
-Create one JSON file per locale in the configured `translations` directory. Use flat keys without nesting.
+Create one JSON file per locale in the configured `translations` directory. Keys must be flat strings — no nesting.
 
 ```json
 {
@@ -291,23 +265,23 @@ Create one JSON file per locale in the configured `translations` directory. Use 
 }
 ```
 
-All locale files must define the same set of keys. Use `Locale.t` to get a translation function scoped to the current page's locale:
+Use `t` from `Locale.use(Astro)` to look up a key for the current locale. A warning is logged at startup for any keys present in the default locale but missing in another.
 
 ```astro
 ---
 import { Locale } from "@mannisto/astro-i18n/runtime"
 
-const t = Locale.t(Astro.url)
+const { t } = Locale.use(Astro)
 ---
 
 <h1>{t("nav.home")}</h1>
 ```
 
-> For non-Astro components such as React or Vue, pass the locale as a prop from the parent page and use `Locale.use` to get the translation function.
+For non-Astro components such as React or Vue, destructure `t` from `Locale.use(Astro)` in the parent page and pass it as a prop.
 
 ## Language switcher
 
-No switcher component is provided, but `Locale.get()` and `Locale.switch()` give you everything needed to build one. Below is an example pattern.
+No switcher component is included, but `Locale.get()` and `Locale.switch()` give you everything needed to build one.
 
 ```astro
 ---
@@ -318,19 +292,17 @@ const locales = Locale.get()
 
 {locales.map((locale) => (
   <button data-locale={locale.code}>
-    {locale.phrase ?? locale.endonym}
+    {locale.phrase ?? locale.endonym ?? locale.code}
   </button>
 ))}
 
 <script>
   import { Locale } from "@mannisto/astro-i18n/runtime"
 
-  document.querySelectorAll("button[data-locale]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const locale = button.getAttribute("data-locale")
-      if (locale) {
-        Locale.switch(locale)
-      }
+  document.querySelectorAll("button[data-locale]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const code = btn.getAttribute("data-locale")
+      if (code) Locale.switch(code)
     })
   })
 </script>
@@ -340,11 +312,11 @@ const locales = Locale.get()
 
 ### Middleware composition
 
-In `server` and `hybrid` mode, the integration middleware is registered automatically with `order: "pre"`. Any middleware you add in `src/middleware.ts` will run after it without any additional setup.
+When a server adapter is configured, the integration middleware runs automatically before your own. Any middleware you define in `src/middleware.ts` will run after it with no additional setup.
 
 ### Ignoring paths
 
-In `server` and `hybrid` mode, paths can be excluded from middleware processing with the `ignore` option. Plain paths match the path and all sub-paths. Glob patterns are also supported.
+Paths can be excluded from middleware processing with the `ignore` option. Plain paths match the path and all sub-paths. Glob patterns are also supported.
 
 ```typescript
 i18n({
@@ -352,43 +324,41 @@ i18n({
 })
 ```
 
-
 ## Components
 
 ### `LocaleCookie`
 
-Writes the current locale to a cookie. Place in the `<head>` on every locale page through your layout.
+Writes the current locale to a cookie on page load. Place in `<head>` on every locale page through your layout.
 
 ```astro
 import { LocaleCookie } from "@mannisto/astro-i18n/components"
 
-<LocaleCookie locale={locale} />
+<LocaleCookie locale={code} />
 ```
 
 | Prop | Type | Default | Description |
-|------|------|---------|-------------|
+|---|---|---|---|
 | `locale` | `string` | — | Current locale code |
-| `age` | `number` | `31536000` | Cookie max-age in seconds |
+| `age` | `number` | `31536000` | Cookie max-age in seconds (1 year) |
 
 ### `LocaleHreflang`
 
-Renders `<link rel="alternate">` hreflang tags for all supported locales plus `x-default`. Place in the `<head>` through your layout.
+Renders `<link rel="alternate">` hreflang tags for all supported locales plus `x-default`. Place in `<head>` through your layout.
 
 ```astro
 import { LocaleHreflang } from "@mannisto/astro-i18n/components"
 
-const site = Astro.site ?? Astro.url.origin
-<LocaleHreflang url={Astro.url} site={site} />
+<LocaleHreflang url={Astro.url} site={Astro.site ?? Astro.url.origin} />
 ```
 
 | Prop | Type | Description |
-|------|------|-------------|
+|---|---|---|
 | `url` | `URL` | Current page URL |
 | `site` | `URL \| string` | Base site URL |
 
 ### `LocaleRedirect`
 
-A client-side redirect script that reads the locale cookie and redirects the browser to the correct locale-prefixed path. Has no effect if the current path already has a valid locale prefix. Use in `404.astro` in `static` mode only.
+A client-side script that reads the locale cookie and redirects the browser to the correct locale-prefixed path. Use in `404.astro` in `Static` mode only.
 
 ```astro
 import { LocaleRedirect } from "@mannisto/astro-i18n/components"
@@ -398,22 +368,63 @@ import { LocaleRedirect } from "@mannisto/astro-i18n/components"
 
 ## API reference
 
-### Locale
+### `Locale.use(Astro)`
+
+The primary way to access locale data in a page or layout. Returns a request-scoped instance — all members are safe to destructure.
+
+```astro
+const { code, name, endonym, phrase, direction, t, response } = Locale.use(Astro)
+```
+
+| Member | Type | Description |
+|---|---|---|
+| `code` | `string` | Current locale code derived from the URL |
+| `name` | `string \| undefined` | Display name in English |
+| `endonym` | `string \| undefined` | Display name in its own language |
+| `phrase` | `string \| undefined` | Short phrase for locale switchers |
+| `direction` | `"ltr" \| "rtl"` | Text direction, defaults to `"ltr"` |
+| `t(key)` | `string` | Looks up a translation key for the current locale |
+| `response()` | `Response \| null` | Returns a redirect if the URL has no locale prefix, otherwise `null` |
+
+### Other methods
 
 | Method | Returns | Description |
-|--------|---------|-------------|
-| `Locale.supported` | `string[]` | All supported locale codes |
-| `Locale.defaultLocale` | `string` | The configured default locale |
+|---|---|---|
+| `Locale.supported` | `string[]` | All configured locale codes |
+| `Locale.defaultLocale` | `string` | The configured default locale code |
 | `Locale.get()` | `LocaleConfig[]` | All locale configs |
 | `Locale.get("fi")` | `LocaleConfig` | Config for a specific locale |
-| `Locale.from(Astro.url)` | `string` | Derives the current locale from the URL |
-| `Locale.t(Astro.url)` | `(key: string) => string` | Translation function for the current URL |
-| `Locale.use(locale)` | `(key: string) => string` | Translation function for a given locale code |
-| `Locale.url("fi", "/about")` | `string` | Builds a locale-prefixed URL |
-| `Locale.direction(Astro.url)` | `"ltr" \| "rtl"` | Text direction for the current locale |
-| `Locale.switch("fi")` | `void` | Sets the locale cookie and navigates |
-| `Locale.hreflang(url, site)` | `{ href, hreflang }[]` | Hreflang entries for all locales |
-| `Locale.response(Astro)` | `Response \| null` | Redirect response if URL has no locale prefix |
+| `Locale.fromURL(url)` | `string` | Derives the locale code from a URL |
+| `Locale.url("fi", "/about")` | `string` | Builds a locale-prefixed URL path |
+| `Locale.switch("fi")` | `void` | Sets the locale cookie and navigates (browser only) |
+| `Locale.hreflang(url, site)` | `{ href, hreflang }[]` | Hreflang entries for all locales plus `x-default` |
+
+---
+
+## Migrating from v1
+
+### Remove `mode` from config
+
+The `mode` option has been removed. The integration now selects the correct behaviour automatically based on your adapter and output combination.
+
+```diff
+i18n({
+  locales: [...],
+- mode: "server",
+})
+```
+
+### Replace per-request helpers with `Locale.use()`
+
+The standalone helper methods have been consolidated into a single `Locale.use(Astro)` call.
+
+```diff
+- const locale = Locale.from(Astro.url)
+- const t = Locale.t(Astro.url)
+- const direction = Locale.direction(Astro.url)
+- const response = Locale.response(Astro)
++ const { code, t, direction, response } = Locale.use(Astro)
+```
 
 ## License
 
