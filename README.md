@@ -2,10 +2,9 @@
 
 ![banner](./assets/banner.png)
 
+![Astro](https://img.shields.io/badge/astro-%232C2052.svg?style=for-the-badge&logo=astro&logoColor=white)
 ![npm version](https://img.shields.io/npm/v/@mannisto/astro-i18n?style=for-the-badge)
 ![license](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
-![Astro](https://img.shields.io/badge/astro-%232C2052.svg?style=for-the-badge&logo=astro&logoColor=white)
-<!-- ![astro peer dependency](https://img.shields.io/npm/dependency-version/@mannisto/astro-i18n/peer/astro?style=for-the-badge) -->
 
 A flexible alternative to Astro's built-in internationalization, with locale routing, detection, and translations for static and SSR sites.
 
@@ -89,7 +88,7 @@ src/
 Your Astro `output` and `adapter` choice map to three rendering modes:
 
 | Mode     | Output             | Adapter | Behaviour     |
-|----------|--------------------|---------|---------------|
+|----------|--------------------|:-------:|---------------|
 | `Static` | `output: "static"` | No      | Fully static  |
 | `Hybrid` | `output: "static"` | Yes     | Mostly static |
 | `Server` | `output: "server"` | N/A     | Fully server  |
