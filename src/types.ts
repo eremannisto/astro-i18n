@@ -1,47 +1,23 @@
 /**
- * A locale code, e.g. "en", "fi", "fr"
+ * A locale code, e.g. "en", "fi", "en-US"
  */
 export type LocaleCode = string
+
+/**
+ * The direction of the locale, e.g. "ltr" or "rtl"
+ */
+export type LocaleDirection = "ltr" | "rtl"
 
 /**
  * Configuration for a single locale
  */
 export type LocaleConfig = {
-  /**
-   * The locale code, e.g. "en"
-   */
   code: LocaleCode
-
-  /**
-   * The locale name in English, e.g. "English"
-   */
-  name: string
-
-  /**
-   * The locale name in its own language, e.g. "Suomi"
-   */
-  endonym: string
-
-  /**
-   * Optional short phrase for locale switchers, e.g. "Suomeksi"
-   */
+  name?: string
+  endonym?: string
   phrase?: string
-
-  /**
-   * Text direction for the locale.
-   * @default "ltr"
-   */
-  direction?: "ltr" | "rtl"
+  direction?: LocaleDirection
 }
-
-/**
- * How the site handles locale detection and page rendering.
- *
- * - "static"  — prerendered pages, localStorage for preference storage
- * - "server"  — server-rendered pages, cookie for preference storage
- * - "hybrid"  — static pages, server-rendered / only, cookie via client-side JS
- */
-export type I18nMode = "static" | "server" | "hybrid"
 
 /**
  * The configuration object passed to the i18n() integration
@@ -53,12 +29,6 @@ export type I18nConfig = {
   locales: LocaleConfig[]
 
   /**
-   * How the site handles locale detection and page rendering.
-   * @default "static"
-   */
-  mode?: I18nMode
-
-  /**
    * The default locale code to use when no preference is stored.
    * Defaults to the first locale in the locales array.
    */
@@ -66,7 +36,7 @@ export type I18nConfig = {
 
   /**
    * URL path prefixes that should bypass the middleware.
-   * Only applies in "server" or "hybrid" mode.
+   * Only applies when a server adapter is configured.
    * Always includes "/_astro" internally.
    *
    * @example ["/keystatic", "/api"]
@@ -84,11 +54,32 @@ export type I18nConfig = {
 }
 
 /**
+ * Minimal Astro context required by Locale.use()
+ */
+export type AstroContext = {
+  url: URL
+  cookies: { get(name: string): { value: string } | undefined }
+  redirect(path: string, status?: number): Response
+}
+
+/**
+ * The locale instance returned by Locale.use()
+ */
+export type LocaleInstance = {
+  code: LocaleCode
+  name: string | undefined
+  endonym: string | undefined
+  phrase: string | undefined
+  direction: LocaleDirection
+  t: (key: string) => string
+  response(): Response | null
+}
+
+/**
  * Full config after defaults have been applied
- **/
+ */
 export type ResolvedI18nConfig = {
   locales: LocaleConfig[]
-  mode: I18nMode
   defaultLocale: LocaleCode
   ignore: string[]
   translations: string | undefined

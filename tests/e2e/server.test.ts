@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test"
 
-test.describe("server mode — locale pages", () => {
+test.describe("locale pages", () => {
   test("renders English home page", async ({ page }) => {
     await page.goto("/en/")
     await expect(page.getByTestId("title")).toHaveText("Home")
@@ -26,7 +26,7 @@ test.describe("server mode — locale pages", () => {
   })
 })
 
-test.describe("server mode — root detection", () => {
+test.describe("root detection", () => {
   test("redirects / to defaultLocale when no cookie", async ({ page }) => {
     await page.context().clearCookies()
     await page.goto("/")
@@ -50,7 +50,7 @@ test.describe("server mode — root detection", () => {
   })
 })
 
-test.describe("server mode — unprefixed redirect", () => {
+test.describe("unprefixed redirect", () => {
   test("redirects unprefixed path to defaultLocale when no cookie", async ({ page }) => {
     await page.context().clearCookies()
     await page.goto("/about")
@@ -74,7 +74,7 @@ test.describe("server mode — unprefixed redirect", () => {
   })
 })
 
-test.describe("server mode — 404 handling", () => {
+test.describe("404 handling", () => {
   test("redirects unprefixed unknown path to defaultLocale", async ({ page }) => {
     await page.context().clearCookies()
     await page.goto("/banana")
@@ -106,7 +106,7 @@ test.describe("server mode — 404 handling", () => {
   })
 })
 
-test.describe("server mode — hreflang", () => {
+test.describe("hreflang", () => {
   test("renders hreflang tags for all locales and x-default", async ({ page }) => {
     await page.goto("/en/")
     await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute(

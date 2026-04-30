@@ -5,7 +5,6 @@ const resolvedConfig = {
     { code: "en", name: "English", endonym: "English" },
     { code: "fi", name: "Finnish", endonym: "Suomi" },
   ],
-  mode: "server",
   defaultLocale: "en",
   ignore: ["/_astro", "/keystatic", "/api/uploads/**/*.png"],
   translations: undefined,
