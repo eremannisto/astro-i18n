@@ -1,6 +1,6 @@
 # Astro Internationalization
 
-![banner](./assets/banner.png)
+![banner](./docs/banner.png)
 
 ![Astro](https://img.shields.io/badge/astro-%232C2052.svg?style=for-the-badge&logo=astro&logoColor=white)
 ![npm version](https://img.shields.io/npm/v/@mannisto/astro-i18n?style=for-the-badge)
