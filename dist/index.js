@@ -187,7 +187,9 @@ function i18n(config) {
         }
         Config.validate(config);
         if (config.ignore && !Utils.hasAdapter(astroConfig)) {
-          logger.warn('"ignore" has no effect in static mode \u2014 middleware requires a server adapter.');
+          logger.warn(
+            '"ignore" has no effect in static mode \u2014 middleware requires a server adapter.'
+          );
         }
         const indexPath = new URL("./src/pages/index.astro", astroConfig.root);
         if (fs2.existsSync(indexPath)) {
