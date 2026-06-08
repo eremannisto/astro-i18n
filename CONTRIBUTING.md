@@ -10,10 +10,10 @@ pnpm exec playwright install # Install playwright browsers
 ## Development
 
 ```bash
-pnpm run build  # Build the package
-pnpm run lint   # Lint code
-pnpm run check  # Check code
-pnpm run format # Format code
+pnpm build  # Build the package
+pnpm lint   # Lint code
+pnpm check  # Check code
+pnpm format # Format code
 ```
 
 ## Testing

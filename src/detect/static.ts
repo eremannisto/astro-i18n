@@ -3,11 +3,13 @@ import type { APIRoute } from "astro"
 
 import type { LocaleConfig } from "../types"
 
-// Injected at / when mode is "static".
-//
-// Serves a prerendered static HTML page with an inline JS redirect script.
-// On first visit, reads the "locale" cookie to find a stored preference.
-// If none exists, falls back to the defaultLocale. Redirects to the locale URL.
+/**
+ * Injected at `/` when no server adapter is configured (`output: "static"`).
+ *
+ * Returns a prerendered HTML page with an inline script that reads the locale
+ * cookie and redirects to the appropriate `/[locale]/` URL, falling back to
+ * `defaultLocale` if no preference is stored.
+ */
 export const prerender = true
 
 export const GET: APIRoute = () => {

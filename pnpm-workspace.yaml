@@ -3,4 +3,4 @@ onlyBuiltDependencies:
   - sharp
 packages:
   - "."
-  - "tests/e2e/fixtures/*"
+  - "tests/e2e/fixtures/*/*"

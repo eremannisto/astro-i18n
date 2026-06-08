@@ -9,6 +9,7 @@ const ports = {
 export default defineConfig({
   testDir: "./tests/e2e",
   outputDir: "./tests/e2e/results",
+  reporter: [["list"]],
   workers: 1,
   projects: [
     {
@@ -26,23 +27,27 @@ export default defineConfig({
       use: { baseURL: `http://localhost:${ports.hybrid}` },
       testMatch: "**/e2e/hybrid.test.ts",
     },
+    {
+      name: "errors",
+      testMatch: "**/e2e/errors.test.ts",
+    },
   ],
   webServer: [
     {
       command: `pnpm astro dev --port ${ports.server}`,
-      cwd: "./tests/e2e/fixtures/server",
+      cwd: "./tests/e2e/fixtures/server/default-prefixed",
       port: ports.server,
       reuseExistingServer: !process.env.CI,
     },
     {
       command: `pnpm astro dev --port ${ports.static}`,
-      cwd: "./tests/e2e/fixtures/static",
+      cwd: "./tests/e2e/fixtures/static/default-prefixed",
       port: ports.static,
       reuseExistingServer: !process.env.CI,
     },
     {
       command: `pnpm astro dev --port ${ports.hybrid}`,
-      cwd: "./tests/e2e/fixtures/hybrid",
+      cwd: "./tests/e2e/fixtures/hybrid/default-prefixed",
       port: ports.hybrid,
       reuseExistingServer: !process.env.CI,
     },

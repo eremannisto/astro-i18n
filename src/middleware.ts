@@ -4,9 +4,11 @@ import pm from "picomatch"
 
 import type { LocaleConfig } from "./types"
 
-// Normalizes an ignore pattern so plain path prefixes match both the exact
-// path and all sub-paths. "/keystatic" becomes ["/keystatic", "/keystatic/**"].
-// Patterns that already contain wildcards are left as-is.
+/**
+ * Normalizes an ignore pattern so plain path prefixes match both the exact
+ * path and all sub-paths. "/keystatic" becomes ["/keystatic", "/keystatic/**"].
+ * Patterns that already contain wildcards are left as-is.
+ */
 function expandPattern(pattern: string): string[] {
   if (pattern.includes("*")) return [pattern]
   return [pattern, `${pattern}/**`]
@@ -44,5 +46,3 @@ export const onRequest = defineMiddleware(({ url, cookies, redirect, isPrerender
 
   return redirect(`/${targetLocale}${pathname}`, 302)
 })
-
-export const i18nMiddleware = onRequest

@@ -3,20 +3,19 @@ name: Bug report
 about: Something isn't working
 ---
 
-**Component**
+## Component
 Which component is affected?
 
-**Expected behavior**
+## Expected behavior
 What should happen?
 
-**Actual behavior**
+## Actual behavior
 What happens instead?
 
-**Reproduction**
+## Reproduction
 Minimal example to reproduce the issue.
 
-**Environment**
-
-- Package version:
-- Astro version:
-- Node version:
+## Environment
+- Package version: `xxx`
+- Astro version: `xxx`
+- Node version: `xxx`

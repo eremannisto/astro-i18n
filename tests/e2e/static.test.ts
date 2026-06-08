@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test"
 
-test.describe("static mode — locale pages", () => {
+test.describe("locale pages", () => {
   test("renders English home page", async ({ page }) => {
     await page.goto("/en/")
     await expect(page.getByTestId("title")).toHaveText("Home")
@@ -26,7 +26,7 @@ test.describe("static mode — locale pages", () => {
   })
 })
 
-test.describe("static mode — root detection", () => {
+test.describe("root detection", () => {
   test("redirects / to defaultLocale when no cookie", async ({ page }) => {
     await page.context().clearCookies()
     await page.goto("/")
@@ -64,7 +64,7 @@ test.describe("static mode — root detection", () => {
   })
 })
 
-test.describe("static mode — 404 handling", () => {
+test.describe("404 handling", () => {
   test("redirects unprefixed unknown path to defaultLocale", async ({ page }) => {
     await page.context().clearCookies()
     await page.goto("/banana")
@@ -96,7 +96,7 @@ test.describe("static mode — 404 handling", () => {
   })
 })
 
-test.describe("static mode — hreflang", () => {
+test.describe("hreflang", () => {
   test("renders hreflang tags for all locales and x-default", async ({ page }) => {
     await page.goto("/en/")
     await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute(

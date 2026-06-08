@@ -1,0 +1,20 @@
+---
+import { LocaleCookie } from "@mannisto/astro-i18n/components"
+import { Locale } from "@mannisto/astro-i18n/runtime"
+
+export const prerender = false
+
+const { code, t } = Locale.use(Astro)
+---
+
+<html lang={code}>
+  <head>
+    <meta charset="UTF-8" />
+    <title>{t("nav.about")}</title>
+    <LocaleCookie locale={code} />
+  </head>
+  <body>
+    <h1 data-testid="title">{t("nav.about")}</h1>
+    <p data-testid="copyright">{t("footer.copyright")}</p>
+  </body>
+</html>

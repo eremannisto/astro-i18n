@@ -1,80 +1,35 @@
+import fs from "node:fs"
+
+import { NAME } from "../constants"
 import type { ResolvedI18nConfig } from "../types"
 
-/**
- * Flat key-value translation record for a single locale
- */
-type TranslationRecord = Record<string, string>
-
-/**
- * All loaded translations keyed by locale code
- */
-type TranslationStore = Record<string, TranslationRecord>
-
-/**
- * In-memory translation store —
- * populated at runtime via the virtual module
- */
-let store: TranslationStore = {}
-
-/**
- * Initialise the translation store directly with pre-loaded data.
- * Called by the virtual module at runtime.
- */
-export function initTranslations(data: TranslationStore): void {
-  store = data
-}
-
-/**
- * Translation utilities for loading and accessing flat JSON translation files.
- * Translations are loaded at build time and injected via virtual module at runtime.
- */
 export const Translations = {
   /**
-   * Loads all translation files into memory from the filesystem.
-   * Called once at build time in astro:config:done.
+   * Loads translation JSON files for all configured locales.
+   * Throws if a translation file is missing.
    */
-  load(config: ResolvedI18nConfig): TranslationStore {
-    const result: TranslationStore = {}
-    // dynamic import of fs — only available at build time
-    const fs = await_fs()
+  load(config: ResolvedI18nConfig): Record<string, Record<string, string>> {
+    const data: Record<string, Record<string, string>> = {}
     for (const locale of config.locales) {
       const filePath = `${config.translations}/${locale.code}.json`
-      const raw = fs.readFileSync(filePath, "utf-8")
-      result[locale.code] = JSON.parse(raw)
+      if (!fs.existsSync(filePath)) throw new Error(`${NAME} Missing translation file: ${filePath}`)
+      data[locale.code] = JSON.parse(fs.readFileSync(filePath, "utf-8"))
     }
-    store = result
-    return result
+    return data
   },
 
   /**
-   * Returns the full translation record for a locale.
-   * Used by Locale.t(locale) with no key argument.
+   * Warns about translation keys present in the default locale but missing in other locales.
+   * Does not throw — missing keys are allowed to support incremental translation workflows.
    */
-  get(locale: string): TranslationRecord {
-    return store[locale] ?? {}
-  },
-
-  /**
-   * Returns a single translated string for a locale and key.
-   * Used by Locale.t(locale, "nav.home").
-   * Throws if locale or key is not found.
-   */
-  key(locale: string, key: string): string {
-    const translations = store[locale]
-    if (!translations) {
-      throw new Error(`[@mannisto/astro-i18n] No translations loaded for locale "${locale}".`)
+  validate(data: Record<string, Record<string, string>>, defaultLocale: string): void {
+    const defaultKeys = new Set(Object.keys(data[defaultLocale]))
+    for (const [code, record] of Object.entries(data)) {
+      if (code === defaultLocale) continue
+      const keys = new Set(Object.keys(record))
+      for (const key of defaultKeys) {
+        if (!keys.has(key)) console.warn(`${NAME} Missing translation key "${key}" in ${code}.json`)
+      }
     }
-    if (!(key in translations)) {
-      throw new Error(`[@mannisto/astro-i18n] Missing key "${key}" in ${locale}.json`)
-    }
-    return translations[key]
   },
-}
-
-/**
- * Lazy fs import — only works at build time / Node environment
- */
-function await_fs() {
-  // biome-ignore lint/style/noCommonJs: lazy fs import, only available in Node at build time
-  return require("node:fs")
 }

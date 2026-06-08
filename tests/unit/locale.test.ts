@@ -1,32 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
+import { Mock } from "../lib/utils"
+
 const resolvedConfig = {
   locales: [
     { code: "en", name: "English", endonym: "English" },
     { code: "fi", name: "Finnish", endonym: "Suomi", phrase: "Suomeksi", direction: "rtl" },
   ],
-  mode: "server",
   defaultLocale: "en",
   ignore: ["/_astro"],
   translations: "./src/translations",
 }
 
-const translationData = {
-  en: {
-    "nav.home": "Home",
-    "nav.about": "About",
-    "footer.copyright": "All rights reserved",
-  },
-  fi: {
-    "nav.home": "Etusivu",
-    "nav.about": "Tietoa",
-    "footer.copyright": "Kaikki oikeudet pidätetään",
-  },
-}
-
 vi.mock("virtual:astro-i18n/config", () => ({
   config: resolvedConfig,
-  translations: translationData,
+  translations: Mock.translations,
 }))
 
 const { Locale } = await import("../../src/lib/locale")
@@ -43,19 +31,19 @@ describe("Locale.defaultLocale", () => {
   })
 })
 
-describe("Locale.from", () => {
+describe("Locale.fromURL", () => {
   it("returns the locale from a URL", () => {
-    expect(Locale.from(new URL("https://example.com/fi/about"))).toBe("fi")
-    expect(Locale.from(new URL("https://example.com/en/"))).toBe("en")
+    expect(Locale.fromURL(new URL("https://example.com/fi/about"))).toBe("fi")
+    expect(Locale.fromURL(new URL("https://example.com/en/"))).toBe("en")
   })
 
   it("returns defaultLocale when no locale found in URL", () => {
-    expect(Locale.from(new URL("https://example.com/about"))).toBe("en")
-    expect(Locale.from(new URL("https://example.com/"))).toBe("en")
+    expect(Locale.fromURL(new URL("https://example.com/about"))).toBe("en")
+    expect(Locale.fromURL(new URL("https://example.com/"))).toBe("en")
   })
 
   it("returns defaultLocale for unknown locale in URL", () => {
-    expect(Locale.from(new URL("https://example.com/de/about"))).toBe("en")
+    expect(Locale.fromURL(new URL("https://example.com/de/about"))).toBe("en")
   })
 })
 
@@ -76,20 +64,6 @@ describe("Locale.get", () => {
 
   it("throws for an unknown locale code", () => {
     expect(() => Locale.get("de")).toThrow('Locale "de" not found.')
-  })
-})
-
-describe("Locale.direction", () => {
-  it("returns the configured direction for the locale in the URL", () => {
-    expect(Locale.direction(new URL("https://example.com/fi/about"))).toBe("rtl")
-  })
-
-  it('defaults to "ltr" when no direction is configured', () => {
-    expect(Locale.direction(new URL("https://example.com/en/about"))).toBe("ltr")
-  })
-
-  it("falls back to defaultLocale when URL has no locale prefix", () => {
-    expect(Locale.direction(new URL("https://example.com/about"))).toBe("ltr")
   })
 })
 
@@ -123,22 +97,86 @@ describe("Locale.switch", () => {
   })
 })
 
-describe("Locale.use — with translations", () => {
-  it("returns a function when called with a locale", () => {
-    expect(typeof Locale.use("en")).toBe("function")
+describe("Locale.use — instance", () => {
+  it("returns locale fields for a prefixed URL", () => {
+    const locale = Locale.use(Mock.astro("/fi/about"))
+    expect(locale.code).toBe("fi")
+    expect(locale.name).toBe("Finnish")
+    expect(locale.endonym).toBe("Suomi")
+    expect(locale.phrase).toBe("Suomeksi")
+    expect(locale.direction).toBe("rtl")
   })
 
-  it("returns the translated string for a key", () => {
-    expect(Locale.use("fi")("nav.home")).toBe("Etusivu")
-    expect(Locale.use("en")("nav.home")).toBe("Home")
+  it("falls back to defaultLocale when URL has no locale prefix", () => {
+    const locale = Locale.use(Mock.astro("/about"))
+    expect(locale.code).toBe("en")
+    expect(locale.name).toBe("English")
+    expect(locale.endonym).toBe("English")
+    expect(locale.phrase).toBeUndefined()
+    expect(locale.direction).toBe("ltr")
   })
 
-  it("throws for a missing translation key", () => {
-    expect(() => Locale.use("fi")("nav.missing")).toThrow('Missing translation key "nav.missing"')
+  it("defaults direction to ltr when not configured", () => {
+    expect(Locale.use(Mock.astro("/en/about")).direction).toBe("ltr")
   })
 
-  it("throws for an unknown locale", () => {
-    expect(() => Locale.use("de")("nav.home")).toThrow('No translations found for locale "de"')
+  it("t translates a key for the current locale", () => {
+    expect(Locale.use(Mock.astro("/fi/about")).t("nav.home")).toBe("Etusivu")
+    expect(Locale.use(Mock.astro("/en/about")).t("nav.home")).toBe("Home")
+  })
+
+  it("t throws for a missing translation key", () => {
+    const { t } = Locale.use(Mock.astro("/fi/about"))
+    expect(() => t("nav.missing")).toThrow('Missing translation key "nav.missing"')
+  })
+
+  it("all members are safe to destructure", () => {
+    const { code, name, endonym, phrase, direction, t, response } = Locale.use(
+      Mock.astro("/fi/about")
+    )
+    expect(code).toBe("fi")
+    expect(name).toBe("Finnish")
+    expect(endonym).toBe("Suomi")
+    expect(phrase).toBe("Suomeksi")
+    expect(direction).toBe("rtl")
+    expect(t("nav.home")).toBe("Etusivu")
+    expect(response()).toBeNull()
+  })
+
+  it("response returns null when URL has a valid locale prefix", () => {
+    expect(Locale.use(Mock.astro("/en/about")).response()).toBeNull()
+    expect(Locale.use(Mock.astro("/fi/banana")).response()).toBeNull()
+    expect(Locale.use(Mock.astro("/en/")).response()).toBeNull()
+  })
+
+  it("response redirects unprefixed path to defaultLocale when no cookie", () => {
+    const result = Locale.use(Mock.astro("/about")).response() as any
+    expect(result.path).toBe("/en/about")
+    expect(result.status).toBe(302)
+  })
+
+  it("response redirects unprefixed path to cookie locale when cookie is set", () => {
+    const result = Locale.use(Mock.astro("/about", "fi")).response() as any
+    expect(result.path).toBe("/fi/about")
+    expect(result.status).toBe(302)
+  })
+
+  it("response redirects to defaultLocale when cookie has an invalid locale", () => {
+    const result = Locale.use(Mock.astro("/about", "de")).response() as any
+    expect(result.path).toBe("/en/about")
+    expect(result.status).toBe(302)
+  })
+
+  it("response redirects root unprefixed path to defaultLocale", () => {
+    const result = Locale.use(Mock.astro("/")).response() as any
+    expect(result.path).toBe("/en/")
+    expect(result.status).toBe(302)
+  })
+
+  it("response redirects to cookie locale for unknown path", () => {
+    const result = Locale.use(Mock.astro("/banana", "fi")).response() as any
+    expect(result.path).toBe("/fi/banana")
+    expect(result.status).toBe(302)
   })
 })
 
@@ -147,38 +185,14 @@ describe("Locale.use — without translations", () => {
     vi.resetModules()
   })
 
-  it("warns and returns empty string when translations are not configured", async () => {
+  it("throws when t() is called but translations are not configured", async () => {
     vi.doMock("virtual:astro-i18n/config", () => ({
       config: { ...resolvedConfig, translations: undefined },
       translations: {},
     }))
     const { Locale: L } = await import("../../src/lib/locale")
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
-    const t = L.use("en")
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining("translations are not configured"))
-    expect(t("nav.home")).toBe("")
-    warn.mockRestore()
-  })
-})
-
-describe("Locale.t", () => {
-  it("returns a translation function for the locale in the URL", () => {
-    expect(typeof Locale.t(new URL("https://example.com/fi/about"))).toBe("function")
-  })
-
-  it("translates a key using the locale from the URL", () => {
-    expect(Locale.t(new URL("https://example.com/fi/about"))("nav.home")).toBe("Etusivu")
-    expect(Locale.t(new URL("https://example.com/en/about"))("nav.home")).toBe("Home")
-  })
-
-  it("falls back to defaultLocale when URL has no locale prefix", () => {
-    expect(Locale.t(new URL("https://example.com/about"))("nav.home")).toBe("Home")
-  })
-
-  it("throws for a missing translation key", () => {
-    expect(() => Locale.t(new URL("https://example.com/fi/about"))("nav.missing")).toThrow(
-      'Missing translation key "nav.missing"'
-    )
+    const { t } = L.use(Mock.astro("/en/about"))
+    expect(() => t("nav.home")).toThrow("translations are not configured")
   })
 })
 
@@ -226,67 +240,5 @@ describe("Locale.hreflang", () => {
     const result = Locale.hreflang(new URL("https://example.com/fi/about"), "https://example.com")
     const xDefault = result.find((r) => r.hreflang === "x-default")
     expect(xDefault?.href).toBe("https://example.com/en/about")
-  })
-})
-
-describe("Locale.response", () => {
-  function makeAstro(pathname: string, cookieLocale?: string) {
-    return {
-      url: new URL(`https://example.com${pathname}`),
-      cookies: {
-        get: (name: string) =>
-          name === "locale" && cookieLocale ? { value: cookieLocale } : undefined,
-      },
-      redirect: (path: string, status?: number) => ({ path, status }) as unknown as Response,
-    }
-  }
-
-  it("returns null when path already has a valid locale prefix", () => {
-    expect(Locale.response(makeAstro("/en/about"))).toBeNull()
-    expect(Locale.response(makeAstro("/fi/banana"))).toBeNull()
-    expect(Locale.response(makeAstro("/en/"))).toBeNull()
-  })
-
-  it("redirects unprefixed path to defaultLocale when no cookie", () => {
-    const result = Locale.response(makeAstro("/about")) as any
-    expect(result.path).toBe("/en/about")
-    expect(result.status).toBe(302)
-  })
-
-  it("redirects unprefixed path to cookie locale when cookie is set", () => {
-    const result = Locale.response(makeAstro("/about", "fi")) as any
-    expect(result.path).toBe("/fi/about")
-    expect(result.status).toBe(302)
-  })
-
-  it("redirects to defaultLocale when cookie has an invalid locale", () => {
-    const result = Locale.response(makeAstro("/about", "de")) as any
-    expect(result.path).toBe("/en/about")
-    expect(result.status).toBe(302)
-  })
-
-  it("redirects root unprefixed path to defaultLocale", () => {
-    const result = Locale.response(makeAstro("/")) as any
-    expect(result.path).toBe("/en/")
-    expect(result.status).toBe(302)
-  })
-
-  it("redirects unknown path to cookie locale", () => {
-    const result = Locale.response(makeAstro("/banana", "fi")) as any
-    expect(result.path).toBe("/fi/banana")
-    expect(result.status).toBe(302)
-  })
-})
-
-describe("Locale.redirect (deprecated)", () => {
-  it("delegates to Locale.response", () => {
-    const astro = {
-      url: new URL("https://example.com/about"),
-      cookies: { get: () => undefined },
-      redirect: (path: string, status?: number) => ({ path, status }) as unknown as Response,
-    }
-    const result = Locale.redirect(astro) as any
-    expect(result.path).toBe("/en/about")
-    expect(result.status).toBe(302)
   })
 })

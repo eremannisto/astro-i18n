@@ -3,16 +3,15 @@ import type { APIRoute } from "astro"
 
 import type { LocaleConfig } from "../types"
 
-// Injected at / when mode is "hybrid".
-//
-// Identical to server detection — reads the locale cookie to find a stored
-// preference, falls back to defaultLocale if none exists. Sets the cookie
-// and redirects to the appropriate locale URL.
-//
-// The difference from server mode is that all /[locale]/ pages remain
-// fully static. Only this route is server-rendered. The cookie can also
-// be updated client-side via Locale.switch() when the user changes locale,
-// so return visits to / always redirect correctly.
+/**
+ * Injected at `/` when `output: "static"` is configured with a server adapter.
+ *
+ * Reads the locale cookie for a stored preference, falls back to `defaultLocale`,
+ * then sets the cookie and redirects to the appropriate `/[locale]/` URL.
+ *
+ * All `/[locale]/` pages remain prerendered — only this route is server-rendered.
+ * The cookie can also be updated client-side via `Locale.switch()`.
+ */
 export const prerender = false
 
 export const GET: APIRoute = ({ cookies, redirect }) => {

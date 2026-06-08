@@ -1,0 +1,3 @@
+{
+  "nav.home": "Home"
+}
