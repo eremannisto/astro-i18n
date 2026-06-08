@@ -2,8 +2,8 @@ import type { AstroConfig } from "astro"
 
 export const Utils = {
   /**
-   * No adapter configured — all pages are prerendered, root redirect is
-   * handled client-side via an injected static HTML page.
+   * No adapter configured — all pages are prerendered, root index.html
+   * is written at build time via astro:build:done.
    */
   isStatic(config: AstroConfig): boolean {
     return !config.adapter && config.output === "static"
