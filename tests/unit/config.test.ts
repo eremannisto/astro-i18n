@@ -96,51 +96,39 @@ describe("Config.validate — defaultLocale", () => {
 })
 
 describe("Config.validate — ignore", () => {
-  it("throws if ignore is used without an adapter", () => {
+  it("passes with ignore", () => {
     expect(() =>
-      Config.validate(
-        { locales: [{ code: "en", name: "English", endonym: "English" }], ignore: ["/keystatic"] },
-        false
-      )
-    ).toThrow('"ignore" requires a server adapter.')
-  })
-
-  it("passes if ignore is used with an adapter", () => {
-    expect(() =>
-      Config.validate(
-        { locales: [{ code: "en", name: "English", endonym: "English" }], ignore: ["/keystatic"] },
-        true
-      )
+      Config.validate({
+        locales: [{ code: "en", name: "English", endonym: "English" }],
+        ignore: ["/keystatic"],
+      })
     ).not.toThrow()
   })
 
   it("passes without ignore", () => {
     expect(() =>
-      Config.validate({ locales: [{ code: "en", name: "English", endonym: "English" }] }, false)
+      Config.validate({ locales: [{ code: "en", name: "English", endonym: "English" }] })
     ).not.toThrow()
   })
 })
 
 describe("Config.validate — full config", () => {
-  it("passes for a valid server config", () => {
+  it("passes for a valid config with all fields", () => {
     expect(() =>
-      Config.validate(
-        {
-          locales: [
-            { code: "en", name: "English", endonym: "English" },
-            { code: "fi", name: "Finnish", endonym: "Suomi" },
-          ],
-          defaultLocale: "en",
-          ignore: ["/keystatic"],
-        },
-        true
-      )
+      Config.validate({
+        locales: [
+          { code: "en", name: "English", endonym: "English" },
+          { code: "fi", name: "Finnish", endonym: "Suomi" },
+        ],
+        defaultLocale: "en",
+        ignore: ["/keystatic"],
+      })
     ).not.toThrow()
   })
 
   it("passes without optional fields", () => {
     expect(() =>
-      Config.validate({ locales: [{ code: "en", name: "English", endonym: "English" }] }, false)
+      Config.validate({ locales: [{ code: "en", name: "English", endonym: "English" }] })
     ).not.toThrow()
   })
 })

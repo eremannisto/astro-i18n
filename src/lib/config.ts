@@ -17,7 +17,7 @@ export const Config = {
   /**
    * Validates the full config before it is resolved.
    */
-  validate(config: I18nConfig, hasAdapter: boolean): void {
+  validate(config: I18nConfig): void {
     // Locales must be defined and each code must be non-empty
     if (!config.locales || config.locales.length === 0) {
       throw new Error(`${NAME} No locales defined.`)
@@ -54,11 +54,6 @@ export const Config = {
     // Default locale must exist in the locales array
     if (config.defaultLocale && !codes.includes(config.defaultLocale)) {
       throw new Error(`${NAME} defaultLocale "${config.defaultLocale}" not found in locales.`)
-    }
-
-    // Ignore requires a server adapter — it only takes effect via middleware
-    if (config.ignore && !hasAdapter) {
-      throw new Error(`${NAME} "ignore" requires a server adapter.`)
     }
   },
 }
