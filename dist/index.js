@@ -22,7 +22,7 @@ var Config = {
   /**
    * Validates the full config before it is resolved.
    */
-  validate(config, hasAdapter) {
+  validate(config) {
     if (!config.locales || config.locales.length === 0) {
       throw new Error(`${NAME} No locales defined.`);
     }
@@ -48,9 +48,6 @@ var Config = {
     }
     if (config.defaultLocale && !codes.includes(config.defaultLocale)) {
       throw new Error(`${NAME} defaultLocale "${config.defaultLocale}" not found in locales.`);
-    }
-    if (config.ignore && !hasAdapter) {
-      throw new Error(`${NAME} "ignore" requires a server adapter.`);
     }
   }
 };
@@ -90,8 +87,8 @@ var Translations = {
 // src/lib/utils.ts
 var Utils = {
   /**
-   * No adapter configured — all pages are prerendered, root redirect is
-   * handled client-side via an injected static HTML page.
+   * No adapter configured — all pages are prerendered, root index.html
+   * is written at build time via astro:build:done.
    */
   isStatic(config) {
     return !config.adapter && config.output === "static";
@@ -173,8 +170,8 @@ function i18n(config) {
     name: NAME,
     hooks: {
       /**
-       * Runs at config setup time. Validates, resolves, registers the Vite
-       * plugin, and injects the locale detection route.
+       * Runs at config setup time. Validates, resolves, and registers the
+       * Vite plugin and locale detection routes.
        */
       "astro:config:setup": ({
         config: astroConfig,
@@ -188,7 +185,10 @@ function i18n(config) {
             "Astro's built-in i18n is configured. Remove the i18n key from astro.config to avoid conflicts."
           );
         }
-        Config.validate(config, Utils.hasAdapter(astroConfig));
+        Config.validate(config);
+        if (config.ignore && !Utils.hasAdapter(astroConfig)) {
+          logger.warn('"ignore" has no effect in static mode \u2014 middleware requires a server adapter.');
+        }
         const indexPath = new URL("./src/pages/index.astro", astroConfig.root);
         if (fs2.existsSync(indexPath)) {
           throw new Error(`${NAME} Found conflicting src/pages/index.astro \u2014 remove it.`);

@@ -56,8 +56,8 @@ export default function i18n(config: I18nConfig): AstroIntegration {
     name: NAME,
     hooks: {
       /**
-       * Runs at config setup time. Validates, resolves, registers the Vite
-       * plugin, and injects the locale detection route.
+       * Runs at config setup time. Validates, resolves, and registers the
+       * Vite plugin and locale detection routes.
        */
       "astro:config:setup": ({
         config: astroConfig,
@@ -73,10 +73,15 @@ export default function i18n(config: I18nConfig): AstroIntegration {
           )
         }
 
-        Config.validate(config, Utils.hasAdapter(astroConfig))
+        Config.validate(config)
 
-        // A user-owned src/pages/index.astro would shadow the injected
-        // detection route at / and silently break locale redirects.
+        if (config.ignore && !Utils.hasAdapter(astroConfig)) {
+          logger.warn(
+            '"ignore" has no effect in static mode — middleware requires a server adapter.'
+          )
+        }
+
+        // A user-owned src/pages/index.astro conflicts with the root detection.
         const indexPath = new URL("./src/pages/index.astro", astroConfig.root)
         if (fs.existsSync(indexPath)) {
           throw new Error(`${NAME} Found conflicting src/pages/index.astro — remove it.`)
