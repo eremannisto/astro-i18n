@@ -1,4 +1,5 @@
 // src/index.ts
+import fs2 from "fs";
 import path from "path";
 
 // src/lib/validate.ts
@@ -125,6 +126,7 @@ function watchTranslations(server, resolved, logger, onReload) {
 function i18n(config) {
   let resolved;
   let translationData = {};
+  let staticMode = false;
   return {
     name: NAME2,
     hooks: {
@@ -173,11 +175,7 @@ export const translations = ${JSON.stringify(translationData)}
           }
         });
         if (resolved.mode === "static") {
-          injectRoute({
-            pattern: "/",
-            entrypoint: "@mannisto/astro-i18n/detect/static",
-            prerender: true
-          });
+          staticMode = true;
         }
         if (resolved.mode === "server") {
           injectRoute({
@@ -213,6 +211,27 @@ export const translations = ${JSON.stringify(translationData)}
         watchTranslations(server, resolved, logger, (data) => {
           translationData = data;
         });
+      },
+      // Writes the root index.html for locale detection in static mode.
+      "astro:build:done": ({ dir }) => {
+        if (!staticMode) return;
+        const supported = resolved.locales.map((l) => l.code);
+        const defaultLocale = resolved.defaultLocale;
+        const html = `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      const supported = ${JSON.stringify(supported)};
+      const defaultLocale = "${defaultLocale}";
+      const stored = document.cookie.split("; ").find(r => r.startsWith("locale="))?.split("=")[1];
+      const locale = (stored && supported.includes(stored)) ? stored : defaultLocale;
+      window.location.replace("/" + locale + "/");
+    </script>
+  </head>
+  <body></body>
+</html>`;
+        fs2.writeFileSync(new URL("index.html", dir), html);
       }
     }
   };

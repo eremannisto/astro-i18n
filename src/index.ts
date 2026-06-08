@@ -1,3 +1,4 @@
+import fs from "node:fs"
 import path from "node:path"
 import type { AstroIntegration } from "astro"
 
@@ -56,6 +57,7 @@ function watchTranslations(
 export default function i18n(config: I18nConfig): AstroIntegration {
   let resolved: ResolvedI18nConfig
   let translationData: Record<string, Record<string, string>> = {}
+  let staticMode = false
 
   return {
     name: NAME,
@@ -110,13 +112,9 @@ export const translations = ${JSON.stringify(translationData)}
           },
         })
 
-        // Static mode — inject a prerendered static route at /
+        // Static mode — root locale detection page is written at build time.
         if (resolved.mode === "static") {
-          injectRoute({
-            pattern: "/",
-            entrypoint: "@mannisto/astro-i18n/detect/static",
-            prerender: true,
-          })
+          staticMode = true
         }
 
         // Server mode — inject a server-side route at /
@@ -164,6 +162,31 @@ export const translations = ${JSON.stringify(translationData)}
         watchTranslations(server, resolved, logger, (data) => {
           translationData = data
         })
+      },
+
+      // Writes the root index.html for locale detection in static mode.
+      "astro:build:done": ({ dir }) => {
+        if (!staticMode) return
+
+        const supported = resolved.locales.map((l) => l.code)
+        const defaultLocale = resolved.defaultLocale
+
+        const html = `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      const supported = ${JSON.stringify(supported)};
+      const defaultLocale = "${defaultLocale}";
+      const stored = document.cookie.split("; ").find(r => r.startsWith("locale="))?.split("=")[1];
+      const locale = (stored && supported.includes(stored)) ? stored : defaultLocale;
+      window.location.replace("/" + locale + "/");
+    </script>
+  </head>
+  <body></body>
+</html>`
+
+        fs.writeFileSync(new URL("index.html", dir), html)
       },
     },
   }
