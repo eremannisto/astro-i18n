@@ -38,8 +38,8 @@ function getLocale(code?: LocaleCode): LocaleConfig | LocaleConfig[] {
 
 /**
  * Returns a translation lookup function for the given locale.
- * A key missing in the locale uses the default locale text.
- * Throws at call time if translations are not configured or the default locale has no key.
+ * A missing key logs an error and returns the key name.
+ * Throws at call time if translations are not configured.
  */
 function buildTranslator(code: LocaleCode): LocaleInstance["t"] {
   if (!config.translations) {
@@ -51,24 +51,25 @@ function buildTranslator(code: LocaleCode): LocaleInstance["t"] {
     }
   }
   const record = translations[code]
-  const fallback = translations[config.defaultLocale]
   if (!record) throw new Error(`${NAME} No translations found for locale "${code}".`)
-  return (key: string, values?: TranslationValues): string => {
-    const source = Object.hasOwn(record, key) ? record : fallback
-    if (!Object.hasOwn(source, key)) {
-      throw new Error(`${NAME} Missing translation key "${key}" in ${config.defaultLocale}.json`)
+  return (key: string, values: TranslationValues = {}): string => {
+    if (!Object.hasOwn(record, key)) {
+      console.error(`${NAME} Missing translation key "${key}" in ${code}.json`)
+      return key
     }
-    return values ? interpolate(source[key], values) : source[key]
+    return interpolate(record[key], values, key)
   }
 }
 
 /**
  * Replaces {{name}} placeholders with values.
- * A placeholder without a value stays unchanged.
+ * A placeholder without a value logs an error and stays in the text.
  */
-function interpolate(text: string, values: TranslationValues): string {
+function interpolate(text: string, values: TranslationValues, key: string): string {
   return text.replace(/\{\{\s*(\w+)\s*\}\}/g, (placeholder, name: string) => {
-    return Object.hasOwn(values, name) ? String(values[name]) : placeholder
+    if (Object.hasOwn(values, name)) return String(values[name])
+    console.error(`${NAME} Missing value "${name}" for translation key "${key}"`)
+    return placeholder
   })
 }
 

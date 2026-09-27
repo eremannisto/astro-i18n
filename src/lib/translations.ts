@@ -24,7 +24,7 @@ export const Translations = {
 
   /**
    * Warns about translation keys present in the default locale but missing in other locales.
-   * Does not throw — t() uses the default locale text for a missing key.
+   * Does not throw — t() returns the key name for a missing key.
    */
   validate(data: Record<string, Record<string, string>>, defaultLocale: string): void {
     const defaultKeys = new Set(Object.keys(data[defaultLocale]))

@@ -121,40 +121,6 @@ describe("Locale.use — instance", () => {
     expect(Locale.use(Mock.astro("/en/about")).direction).toBe("ltr")
   })
 
-  it("t translates a key for the current locale", () => {
-    expect(Locale.use(Mock.astro("/fi/about")).t("nav.home")).toBe("Etusivu")
-    expect(Locale.use(Mock.astro("/en/about")).t("nav.home")).toBe("Home")
-  })
-
-  it("t uses the default locale text for a key missing in the locale", () => {
-    expect(Locale.use(Mock.astro("/fi/about")).t("nav.contact")).toBe("Contact")
-  })
-
-  it("t throws for a key missing in the default locale", () => {
-    const { t } = Locale.use(Mock.astro("/fi/about"))
-    expect(() => t("nav.missing")).toThrow('Missing translation key "nav.missing" in en.json')
-  })
-
-  it("t throws for inherited object keys", () => {
-    const { t } = Locale.use(Mock.astro("/fi/about"))
-    expect(() => t("constructor")).toThrow('Missing translation key "constructor"')
-  })
-
-  it("t replaces placeholders with values", () => {
-    const { t } = Locale.use(Mock.astro("/fi/about"))
-    expect(t("welcome", { user: "Ere", count: 3 })).toBe("Tervetuloa Ere, sinulla on 3 viestiä")
-  })
-
-  it("t keeps a placeholder without a value", () => {
-    const { t } = Locale.use(Mock.astro("/en/about"))
-    expect(t("welcome", { user: "Ere" })).toBe("Welcome Ere, you have {{ count }} messages")
-  })
-
-  it("t returns the text unchanged without values", () => {
-    const { t } = Locale.use(Mock.astro("/en/about"))
-    expect(t("welcome")).toBe("Welcome {{user}}, you have {{ count }} messages")
-  })
-
   it("all members are safe to destructure", () => {
     const { code, name, endonym, phrase, direction, t } = Locale.use(Mock.astro("/fi/about"))
     expect(code).toBe("fi")

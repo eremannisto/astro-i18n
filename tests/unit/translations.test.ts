@@ -1,7 +1,7 @@
 import fs from "node:fs"
 import os from "node:os"
 import path from "node:path"
-import { afterEach, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, type MockInstance, vi } from "vitest"
 
 import { Translations } from "../../src/lib/translations"
 import { Mock } from "../lib/utils"
@@ -69,19 +69,49 @@ describe("Translations.validate", () => {
   })
 })
 
-describe("Translations via Locale.use", () => {
-  it("returns the correct string for a key", () => {
+describe("t()", () => {
+  let error: MockInstance
+
+  beforeEach(() => {
+    error = vi.spyOn(console, "error").mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    error.mockRestore()
+  })
+
+  it("returns the text of the current locale", () => {
     expect(Locale.use(Mock.astro("/en/about")).t("nav.home")).toBe("Home")
     expect(Locale.use(Mock.astro("/fi/about")).t("nav.home")).toBe("Etusivu")
+    expect(error).not.toHaveBeenCalled()
   })
 
-  it("uses the default locale text for a key missing in the locale", () => {
-    expect(Locale.use(Mock.astro("/fi/about")).t("nav.contact")).toBe("Contact")
-  })
-
-  it("throws for a key missing in the default locale", () => {
-    expect(() => Locale.use(Mock.astro("/en/about")).t("nav.missing")).toThrow(
-      'Missing translation key "nav.missing"'
+  it("returns the key name and logs an error for a key missing in the locale", () => {
+    expect(Locale.use(Mock.astro("/fi/about")).t("nav.contact")).toBe("nav.contact")
+    expect(error).toHaveBeenCalledWith(
+      expect.stringContaining('Missing translation key "nav.contact" in fi.json')
     )
+  })
+
+  it("returns the key name for inherited object keys", () => {
+    expect(Locale.use(Mock.astro("/en/about")).t("constructor")).toBe("constructor")
+  })
+
+  it("replaces placeholders with values", () => {
+    const { t } = Locale.use(Mock.astro("/fi/about"))
+    expect(t("welcome", { user: "Ere", count: 3 })).toBe("Tervetuloa Ere, sinulla on 3 viestiä")
+    expect(error).not.toHaveBeenCalled()
+  })
+
+  it("keeps a placeholder without a value and logs an error", () => {
+    const { t } = Locale.use(Mock.astro("/en/about"))
+    expect(t("welcome", { user: "Ere" })).toBe("Welcome Ere, you have {{ count }} messages")
+    expect(error).toHaveBeenCalledWith(expect.stringContaining('Missing value "count"'))
+  })
+
+  it("ignores values without a placeholder", () => {
+    const { t } = Locale.use(Mock.astro("/en/about"))
+    expect(t("nav.home", { user: "Ere" })).toBe("Home")
+    expect(error).not.toHaveBeenCalled()
   })
 })

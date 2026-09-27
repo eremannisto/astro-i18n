@@ -28,19 +28,20 @@ function buildTranslator(code) {
     };
   }
   const record = translations[code];
-  const fallback = translations[config.defaultLocale];
   if (!record) throw new Error(`${NAME} No translations found for locale "${code}".`);
-  return (key, values) => {
-    const source = Object.hasOwn(record, key) ? record : fallback;
-    if (!Object.hasOwn(source, key)) {
-      throw new Error(`${NAME} Missing translation key "${key}" in ${config.defaultLocale}.json`);
+  return (key, values = {}) => {
+    if (!Object.hasOwn(record, key)) {
+      console.error(`${NAME} Missing translation key "${key}" in ${code}.json`);
+      return key;
     }
-    return values ? interpolate(source[key], values) : source[key];
+    return interpolate(record[key], values, key);
   };
 }
-function interpolate(text, values) {
+function interpolate(text, values, key) {
   return text.replace(/\{\{\s*(\w+)\s*\}\}/g, (placeholder, name) => {
-    return Object.hasOwn(values, name) ? String(values[name]) : placeholder;
+    if (Object.hasOwn(values, name)) return String(values[name]);
+    console.error(`${NAME} Missing value "${name}" for translation key "${key}"`);
+    return placeholder;
   });
 }
 var Locale = {
