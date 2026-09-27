@@ -1,7 +1,13 @@
 import { config, translations } from "virtual:astro-i18n/config"
 
 import { NAME } from "../constants"
-import type { AstroContext, LocaleCode, LocaleConfig, LocaleInstance } from "../types"
+import type {
+  AstroContext,
+  LocaleCode,
+  LocaleConfig,
+  LocaleInstance,
+  TranslationValues,
+} from "../types"
 
 /**
  * Sets a cookie using the Cookie Store API if available, otherwise falls back to document.cookie.
@@ -35,7 +41,7 @@ function getLocale(code?: LocaleCode): LocaleConfig | LocaleConfig[] {
  * A key missing in the locale uses the default locale text.
  * Throws at call time if translations are not configured or the default locale has no key.
  */
-function buildTranslator(code: LocaleCode): (key: string) => string {
+function buildTranslator(code: LocaleCode): LocaleInstance["t"] {
   if (!config.translations) {
     return (key: string) => {
       throw new Error(
@@ -47,11 +53,23 @@ function buildTranslator(code: LocaleCode): (key: string) => string {
   const record = translations[code]
   const fallback = translations[config.defaultLocale]
   if (!record) throw new Error(`${NAME} No translations found for locale "${code}".`)
-  return (key: string): string => {
-    if (key in record) return record[key]
-    if (key in fallback) return fallback[key]
-    throw new Error(`${NAME} Missing translation key "${key}" in ${config.defaultLocale}.json`)
+  return (key: string, values?: TranslationValues): string => {
+    const source = Object.hasOwn(record, key) ? record : fallback
+    if (!Object.hasOwn(source, key)) {
+      throw new Error(`${NAME} Missing translation key "${key}" in ${config.defaultLocale}.json`)
+    }
+    return values ? interpolate(source[key], values) : source[key]
   }
+}
+
+/**
+ * Replaces {{name}} placeholders with values.
+ * A placeholder without a value stays unchanged.
+ */
+function interpolate(text: string, values: TranslationValues): string {
+  return text.replace(/\{\{\s*(\w+)\s*\}\}/g, (placeholder, name: string) => {
+    return Object.hasOwn(values, name) ? String(values[name]) : placeholder
+  })
 }
 
 /**

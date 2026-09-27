@@ -68,6 +68,11 @@ export type AstroContext = {
 }
 
 /**
+ * Values for the {{name}} placeholders in a translation, e.g. { user: "World" }
+ */
+export type TranslationValues = Record<string, string | number>
+
+/**
  * The locale instance returned by Locale.use()
  */
 export type LocaleInstance = {
@@ -76,7 +81,7 @@ export type LocaleInstance = {
   endonym: string | undefined
   phrase: string | undefined
   direction: LocaleDirection
-  t: (key: string) => string
+  t: (key: string, values?: TranslationValues) => string
 }
 
 /**

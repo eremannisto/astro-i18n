@@ -135,6 +135,26 @@ describe("Locale.use — instance", () => {
     expect(() => t("nav.missing")).toThrow('Missing translation key "nav.missing" in en.json')
   })
 
+  it("t throws for inherited object keys", () => {
+    const { t } = Locale.use(Mock.astro("/fi/about"))
+    expect(() => t("constructor")).toThrow('Missing translation key "constructor"')
+  })
+
+  it("t replaces placeholders with values", () => {
+    const { t } = Locale.use(Mock.astro("/fi/about"))
+    expect(t("welcome", { user: "Ere", count: 3 })).toBe("Tervetuloa Ere, sinulla on 3 viestiä")
+  })
+
+  it("t keeps a placeholder without a value", () => {
+    const { t } = Locale.use(Mock.astro("/en/about"))
+    expect(t("welcome", { user: "Ere" })).toBe("Welcome Ere, you have {{ count }} messages")
+  })
+
+  it("t returns the text unchanged without values", () => {
+    const { t } = Locale.use(Mock.astro("/en/about"))
+    expect(t("welcome")).toBe("Welcome {{user}}, you have {{ count }} messages")
+  })
+
   it("all members are safe to destructure", () => {
     const { code, name, endonym, phrase, direction, t } = Locale.use(Mock.astro("/fi/about"))
     expect(code).toBe("fi")

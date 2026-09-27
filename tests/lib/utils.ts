@@ -9,11 +9,13 @@ export const Mock = {
       "nav.about": "About",
       "footer.copyright": "All rights reserved",
       "nav.contact": "Contact",
+      welcome: "Welcome {{user}}, you have {{ count }} messages",
     },
     fi: {
       "nav.home": "Etusivu",
       "nav.about": "Tietoa",
       "footer.copyright": "Kaikki oikeudet pidätetään",
+      welcome: "Tervetuloa {{user}}, sinulla on {{ count }} viestiä",
     },
   },
 }

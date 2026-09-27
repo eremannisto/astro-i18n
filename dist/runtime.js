@@ -30,11 +30,18 @@ function buildTranslator(code) {
   const record = translations[code];
   const fallback = translations[config.defaultLocale];
   if (!record) throw new Error(`${NAME} No translations found for locale "${code}".`);
-  return (key) => {
-    if (key in record) return record[key];
-    if (key in fallback) return fallback[key];
-    throw new Error(`${NAME} Missing translation key "${key}" in ${config.defaultLocale}.json`);
+  return (key, values) => {
+    const source = Object.hasOwn(record, key) ? record : fallback;
+    if (!Object.hasOwn(source, key)) {
+      throw new Error(`${NAME} Missing translation key "${key}" in ${config.defaultLocale}.json`);
+    }
+    return values ? interpolate(source[key], values) : source[key];
   };
+}
+function interpolate(text, values) {
+  return text.replace(/\{\{\s*(\w+)\s*\}\}/g, (placeholder, name) => {
+    return Object.hasOwn(values, name) ? String(values[name]) : placeholder;
+  });
 }
 var Locale = {
   /**
