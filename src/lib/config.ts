@@ -9,6 +9,7 @@ export const Config = {
     return {
       locales: config.locales,
       defaultLocale: config.defaultLocale ?? config.locales[0].code,
+      prefixDefaultLocale: config.prefixDefaultLocale ?? true,
       ignore: ["/_astro", "/_image", ...(config.ignore ?? [])],
       translations: config.translations,
     }

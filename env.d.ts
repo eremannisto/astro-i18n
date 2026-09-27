@@ -7,8 +7,15 @@ declare module "virtual:astro-i18n/config" {
   export const translations: Record<string, Record<string, string>>
 }
 
+// For tsc only: the Astro language tools read the real component types
+declare module "*.astro" {
+  export type Props = Record<string, unknown>
+  const Component: (props: Props) => unknown
+  export default Component
+}
+
 declare namespace App {
   interface Locals {
-    locale: string
+    i18nRewrite?: boolean
   }
 }

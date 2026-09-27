@@ -32,7 +32,8 @@ function getLocale(code?: LocaleCode): LocaleConfig | LocaleConfig[] {
 
 /**
  * Returns a translation lookup function for the given locale.
- * Throws at call time if translations are not configured or a key is missing.
+ * A key missing in the locale uses the default locale text.
+ * Throws at call time if translations are not configured or the default locale has no key.
  */
 function buildTranslator(code: LocaleCode): (key: string) => string {
   if (!config.translations) {
@@ -44,26 +45,12 @@ function buildTranslator(code: LocaleCode): (key: string) => string {
     }
   }
   const record = translations[code]
+  const fallback = translations[config.defaultLocale]
   if (!record) throw new Error(`${NAME} No translations found for locale "${code}".`)
   return (key: string): string => {
-    if (!(key in record))
-      throw new Error(`${NAME} Missing translation key "${key}" in ${code}.json`)
-    return record[key]
-  }
-}
-
-/**
- * Returns a response function that redirects to the correct locale prefix if missing.
- * Returns null if the URL already has a valid locale prefix.
- */
-function buildResponse(astro: AstroContext): () => Response | null {
-  return () => {
-    const firstSegment = astro.url.pathname.split("/").filter(Boolean)[0]
-    const codes = config.locales.map((l: LocaleConfig) => l.code)
-    if (codes.includes(firstSegment)) return null
-    const cookie = astro.cookies.get("locale")?.value
-    const locale = cookie && codes.includes(cookie) ? cookie : config.defaultLocale
-    return astro.redirect(`/${locale}${astro.url.pathname}`, 302)
+    if (key in record) return record[key]
+    if (key in fallback) return fallback[key]
+    throw new Error(`${NAME} Missing translation key "${key}" in ${config.defaultLocale}.json`)
   }
 }
 
@@ -97,14 +84,16 @@ export const Locale = {
   },
 
   /**
-   * Generates a locale-prefixed URL path.
+   * Generates the URL path of a page in the specified locale.
    * Strips any existing locale prefix and prepends the specified locale.
+   * The default locale has no prefix when prefixDefaultLocale is false.
    */
   url(locale: LocaleCode, path = "/"): string {
     const codes = config.locales.map((l: LocaleConfig) => l.code)
     const clean = path.startsWith("/") ? path : `/${path}`
     const segments = clean.split("/")
     const stripped = codes.includes(segments[1]) ? `/${segments.slice(2).join("/")}` : clean
+    if (locale === config.defaultLocale && !config.prefixDefaultLocale) return stripped
     return stripped === "/" ? `/${locale}/` : `/${locale}${stripped}`
   },
 
@@ -142,7 +131,6 @@ export const Locale = {
       phrase: localeConfig.phrase,
       direction: localeConfig.direction ?? "ltr",
       t: buildTranslator(code),
-      response: buildResponse(astro),
     }
   },
 

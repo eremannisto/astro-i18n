@@ -2,10 +2,10 @@ import fs from "node:fs"
 import path from "node:path"
 import type { AstroIntegration } from "astro"
 
-import { NAME } from "./constants"
+import { FALLBACK_PATTERN, NAME } from "./constants"
 import { Config } from "./lib/config"
+import { Output } from "./lib/output"
 import { Translations } from "./lib/translations"
-import { Utils } from "./lib/utils"
 import { createVitePlugin, RESOLVED_ID } from "./lib/vite"
 import type { I18nConfig, ResolvedI18nConfig } from "./types"
 
@@ -50,17 +50,20 @@ function watchTranslations(
 export default function i18n(config: I18nConfig): AstroIntegration {
   let resolved: ResolvedI18nConfig
   let translationData: Record<string, Record<string, string>> = {}
-  let staticMode = false
+  let hasAdapter = false
+  let detectRoot = false
+  let clientDir: URL
 
   return {
     name: NAME,
     hooks: {
       /**
-       * Runs at config setup time. Validates, resolves, and registers the
-       * Vite plugin and locale detection routes.
+       * Runs at config setup time. Validates and resolves the config, then
+       * registers the Vite plugin, the routes, and the middleware.
        */
       "astro:config:setup": ({
         config: astroConfig,
+        command,
         updateConfig,
         injectRoute,
         addMiddleware,
@@ -74,20 +77,26 @@ export default function i18n(config: I18nConfig): AstroIntegration {
         }
 
         Config.validate(config)
+        resolved = Config.resolve(config)
+        hasAdapter = Boolean(astroConfig.adapter)
 
-        if (config.ignore && !Utils.hasAdapter(astroConfig)) {
-          logger.warn(
-            '"ignore" has no effect in static mode — middleware requires a server adapter.'
+        // A user-owned root page replaces the locale detection at /.
+        // Without a prefix, / belongs to the default locale home page.
+        const hasIndexPage = fs.existsSync(new URL("./src/pages/index.astro", astroConfig.root))
+        if (hasIndexPage && !resolved.prefixDefaultLocale) {
+          throw new Error(
+            `${NAME} src/pages/index.astro has the same URL as the default locale home page. ` +
+              "Remove it, or set prefixDefaultLocale to true."
           )
         }
-
-        // A user-owned src/pages/index.astro conflicts with the root detection.
-        const indexPath = new URL("./src/pages/index.astro", astroConfig.root)
-        if (fs.existsSync(indexPath)) {
-          throw new Error(`${NAME} Found conflicting src/pages/index.astro — remove it.`)
+        if (hasIndexPage) {
+          logger.info("src/pages/index.astro replaces the locale detection at /.")
         }
+        detectRoot = resolved.prefixDefaultLocale && !hasIndexPage
 
-        resolved = Config.resolve(config)
+        if (config.ignore && !hasAdapter) {
+          logger.warn('"ignore" has no effect in static builds — it requires a server adapter.')
+        }
 
         // Register the virtual module so locale config is importable anywhere
         updateConfig({
@@ -102,15 +111,27 @@ export default function i18n(config: I18nConfig): AstroIntegration {
           },
         })
 
-        // Static mode — root locale detection page is written at build time.
-        // Server/hybrid use a server-rendered route + middleware instead.
-        if (Utils.isStatic(astroConfig)) {
-          staticMode = true
-        } else {
-          const entrypoint = Utils.isServer(astroConfig)
-            ? "@mannisto/astro-i18n/detect/server"
-            : "@mannisto/astro-i18n/detect/hybrid"
-          injectRoute({ pattern: "/", entrypoint, prerender: false })
+        if (hasAdapter && detectRoot) {
+          injectRoute({
+            pattern: "/",
+            entrypoint: "@mannisto/astro-i18n/routes/detect",
+            prerender: false,
+          })
+        }
+
+        // Without this route, the middleware gets no request headers for paths
+        // that match only prerendered routes. Unprefixed dev cannot use it: a
+        // rewrite from an on-demand route to a prerendered page is forbidden in dev.
+        if (hasAdapter && (command === "build" || resolved.prefixDefaultLocale)) {
+          injectRoute({
+            pattern: FALLBACK_PATTERN,
+            entrypoint: "@mannisto/astro-i18n/routes/fallback",
+            prerender: false,
+          })
+        }
+
+        // Static sites with prefixDefaultLocale: true only need the build output
+        if (hasAdapter || !resolved.prefixDefaultLocale) {
           addMiddleware({ entrypoint: "@mannisto/astro-i18n/middleware", order: "pre" })
         }
       },
@@ -119,7 +140,8 @@ export default function i18n(config: I18nConfig): AstroIntegration {
        * Runs after the final config is resolved. Loads and validates
        * translation files if a translations path is configured.
        */
-      "astro:config:done": () => {
+      "astro:config:done": ({ config: astroConfig }) => {
+        clientDir = astroConfig.build.client
         if (!resolved.translations) return
         translationData = Translations.load(resolved)
         Translations.validate(translationData, resolved.defaultLocale)
@@ -135,29 +157,16 @@ export default function i18n(config: I18nConfig): AstroIntegration {
         })
       },
 
-      // Writes the root index.html for locale detection in static mode.
+      /**
+       * Runs after the build. Moves the default locale pages to the root, or
+       * writes the root locale detection page for static sites.
+       */
       "astro:build:done": ({ dir }) => {
-        if (!staticMode) return
-
-        const supported = resolved.locales.map((l) => l.code)
-        const defaultLocale = resolved.defaultLocale
-
-        const html = `<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <script>
-      const supported = ${JSON.stringify(supported)};
-      const defaultLocale = "${defaultLocale}";
-      const stored = document.cookie.split("; ").find(r => r.startsWith("locale="))?.split("=")[1];
-      const locale = (stored && supported.includes(stored)) ? stored : defaultLocale;
-      window.location.replace("/" + locale + "/");
-    </script>
-  </head>
-  <body></body>
-</html>`
-
-        fs.writeFileSync(new URL("index.html", dir), html)
+        if (!resolved.prefixDefaultLocale) {
+          Output.moveDefaultLocale(hasAdapter ? clientDir : dir, resolved.defaultLocale)
+        } else if (!hasAdapter && detectRoot) {
+          Output.writeDetectPage(dir, resolved)
+        }
       },
     },
   }
