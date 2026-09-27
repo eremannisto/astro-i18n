@@ -1,13 +1,6 @@
 export const Mock = {
-  astro(pathname: string, cookieLocale?: string) {
-    return {
-      url: new URL(`https://example.com${pathname}`),
-      cookies: {
-        get: (name: string) =>
-          name === "locale" && cookieLocale ? { value: cookieLocale } : undefined,
-      },
-      redirect: (path: string, status?: number) => ({ path, status }) as unknown as Response,
-    }
+  astro(pathname: string) {
+    return { url: new URL(`https://example.com${pathname}`) }
   },
 
   translations: {
@@ -15,6 +8,7 @@ export const Mock = {
       "nav.home": "Home",
       "nav.about": "About",
       "footer.copyright": "All rights reserved",
+      "nav.contact": "Contact",
     },
     fi: {
       "nav.home": "Etusivu",

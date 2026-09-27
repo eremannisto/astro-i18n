@@ -8,6 +8,7 @@ const resolvedConfig = {
     { code: "fi", name: "Finnish", endonym: "Suomi", phrase: "Suomeksi", direction: "rtl" },
   ],
   defaultLocale: "en",
+  prefixDefaultLocale: true,
   ignore: ["/_astro"],
   translations: "./src/translations",
 }
@@ -125,58 +126,23 @@ describe("Locale.use — instance", () => {
     expect(Locale.use(Mock.astro("/en/about")).t("nav.home")).toBe("Home")
   })
 
-  it("t throws for a missing translation key", () => {
+  it("t uses the default locale text for a key missing in the locale", () => {
+    expect(Locale.use(Mock.astro("/fi/about")).t("nav.contact")).toBe("Contact")
+  })
+
+  it("t throws for a key missing in the default locale", () => {
     const { t } = Locale.use(Mock.astro("/fi/about"))
-    expect(() => t("nav.missing")).toThrow('Missing translation key "nav.missing"')
+    expect(() => t("nav.missing")).toThrow('Missing translation key "nav.missing" in en.json')
   })
 
   it("all members are safe to destructure", () => {
-    const { code, name, endonym, phrase, direction, t, response } = Locale.use(
-      Mock.astro("/fi/about")
-    )
+    const { code, name, endonym, phrase, direction, t } = Locale.use(Mock.astro("/fi/about"))
     expect(code).toBe("fi")
     expect(name).toBe("Finnish")
     expect(endonym).toBe("Suomi")
     expect(phrase).toBe("Suomeksi")
     expect(direction).toBe("rtl")
     expect(t("nav.home")).toBe("Etusivu")
-    expect(response()).toBeNull()
-  })
-
-  it("response returns null when URL has a valid locale prefix", () => {
-    expect(Locale.use(Mock.astro("/en/about")).response()).toBeNull()
-    expect(Locale.use(Mock.astro("/fi/banana")).response()).toBeNull()
-    expect(Locale.use(Mock.astro("/en/")).response()).toBeNull()
-  })
-
-  it("response redirects unprefixed path to defaultLocale when no cookie", () => {
-    const result = Locale.use(Mock.astro("/about")).response() as any
-    expect(result.path).toBe("/en/about")
-    expect(result.status).toBe(302)
-  })
-
-  it("response redirects unprefixed path to cookie locale when cookie is set", () => {
-    const result = Locale.use(Mock.astro("/about", "fi")).response() as any
-    expect(result.path).toBe("/fi/about")
-    expect(result.status).toBe(302)
-  })
-
-  it("response redirects to defaultLocale when cookie has an invalid locale", () => {
-    const result = Locale.use(Mock.astro("/about", "de")).response() as any
-    expect(result.path).toBe("/en/about")
-    expect(result.status).toBe(302)
-  })
-
-  it("response redirects root unprefixed path to defaultLocale", () => {
-    const result = Locale.use(Mock.astro("/")).response() as any
-    expect(result.path).toBe("/en/")
-    expect(result.status).toBe(302)
-  })
-
-  it("response redirects to cookie locale for unknown path", () => {
-    const result = Locale.use(Mock.astro("/banana", "fi")).response() as any
-    expect(result.path).toBe("/fi/banana")
-    expect(result.status).toBe(302)
   })
 })
 
@@ -240,5 +206,43 @@ describe("Locale.hreflang", () => {
     const result = Locale.hreflang(new URL("https://example.com/fi/about"), "https://example.com")
     const xDefault = result.find((r) => r.hreflang === "x-default")
     expect(xDefault?.href).toBe("https://example.com/en/about")
+  })
+})
+
+describe("prefixDefaultLocale: false", () => {
+  beforeEach(() => {
+    vi.resetModules()
+    vi.doMock("virtual:astro-i18n/config", () => ({
+      config: { ...resolvedConfig, prefixDefaultLocale: false },
+      translations: Mock.translations,
+    }))
+  })
+
+  it("Locale.url returns default locale paths without a prefix", async () => {
+    const { Locale: L } = await import("../../src/lib/locale")
+    expect(L.url("en")).toBe("/")
+    expect(L.url("en", "/about")).toBe("/about")
+    expect(L.url("en", "/fi/about")).toBe("/about")
+  })
+
+  it("Locale.url keeps the prefix for other locales", async () => {
+    const { Locale: L } = await import("../../src/lib/locale")
+    expect(L.url("fi")).toBe("/fi/")
+    expect(L.url("fi", "/about")).toBe("/fi/about")
+  })
+
+  it("Locale.use reads the default locale from a path without a prefix", async () => {
+    const { Locale: L } = await import("../../src/lib/locale")
+    expect(L.use(Mock.astro("/about")).code).toBe("en")
+  })
+
+  it("Locale.hreflang returns default locale URLs without a prefix", async () => {
+    const { Locale: L } = await import("../../src/lib/locale")
+    const result = L.hreflang(new URL("https://example.com/en/about"), "https://example.com")
+    expect(result).toEqual([
+      { href: "https://example.com/about", hreflang: "en" },
+      { href: "https://example.com/fi/about", hreflang: "fi" },
+      { href: "https://example.com/about", hreflang: "x-default" },
+    ])
   })
 })

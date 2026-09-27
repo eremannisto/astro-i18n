@@ -1,130 +1,170 @@
-import { describe, expect, it, vi } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 
-const resolvedConfig = {
-  locales: [
-    { code: "en", name: "English", endonym: "English" },
-    { code: "fi", name: "Finnish", endonym: "Suomi" },
-  ],
-  defaultLocale: "en",
-  ignore: ["/_astro", "/keystatic", "/api/uploads/**/*.png"],
-  translations: undefined,
+type Options = {
+  routePattern?: string
+  cookie?: string
+  isPrerendered?: boolean
+  rewritten?: boolean
+  rewrite?: (path: string) => Promise<Response>
 }
 
-vi.mock("virtual:astro-i18n/config", () => ({
-  config: resolvedConfig,
-  translations: {},
-}))
-
-const { onRequest } = await import("../../src/middleware")
-
-function createContext(pathname: string, cookieLocale?: string, isPrerendered = false) {
-  const cookies = new Map<string, string>()
-  if (cookieLocale) cookies.set("locale", cookieLocale)
-
-  return {
-    url: new URL(`https://example.com${pathname}`),
-    isPrerendered,
-    cookies: {
-      get: (key: string) => (cookies.has(key) ? { value: cookies.get(key)! } : undefined),
-      set: (key: string, value: string) => cookies.set(key, value),
+async function load(prefixDefaultLocale: boolean) {
+  vi.resetModules()
+  vi.doMock("virtual:astro-i18n/config", () => ({
+    config: {
+      locales: [
+        { code: "en", name: "English", endonym: "English" },
+        { code: "fi", name: "Finnish", endonym: "Suomi" },
+      ],
+      defaultLocale: "en",
+      prefixDefaultLocale,
+      ignore: ["/_astro", "/keystatic", "/api/uploads/**/*.png"],
+      translations: undefined,
     },
-    locals: {} as Record<string, string>,
-    redirect: (url: string, status: number) =>
-      new Response(null, { status, headers: { location: url } }),
+    translations: {},
+  }))
+  const { onRequest } = await import("../../src/middleware")
+
+  return async (pathname: string, options: Options = {}) => {
+    const context = {
+      url: new URL(`https://example.com${pathname}`),
+      routePattern: options.routePattern ?? "/[locale]",
+      isPrerendered: options.isPrerendered ?? false,
+      locals: { i18nRewrite: options.rewritten },
+      cookies: {
+        get: (key: string) =>
+          key === "locale" && options.cookie ? { value: options.cookie } : undefined,
+      },
+      redirect: (url: string, status: number) =>
+        new Response(null, { status, headers: { location: url } }),
+      rewrite: options.rewrite ?? ((path: string) => Promise.resolve(new Response(path))),
+    }
+    const next = () => Promise.resolve(new Response("next"))
+    const response = (await onRequest(context as any, next)) as Response
+    return { response, body: await response.text() }
   }
 }
 
-function next() {
-  return Promise.resolve(new Response("ok"))
-}
+afterEach(() => {
+  vi.unstubAllEnvs()
+})
 
-async function run(
-  pathname: string,
-  cookieLocale?: string,
-  isPrerendered = false
-): Promise<Response> {
-  const ctx = createContext(pathname, cookieLocale, isPrerendered)
-  const response = await onRequest(ctx as any, next)
-  return response as Response
-}
+describe("both modes", () => {
+  it("passes through prerendered pages in production", async () => {
+    vi.stubEnv("DEV", false)
+    const run = await load(false)
+    expect((await run("/about", { isPrerendered: true })).body).toBe("next")
+  })
 
-describe("onRequest — prerendered passthrough", () => {
-  it("passes through prerendered pages without touching them", async () => {
-    expect((await run("/en/about", undefined, true)).status).toBe(200)
+  it("passes through pages outside the [locale] folder", async () => {
+    const run = await load(false)
+    expect((await run("/privacy", { routePattern: "/privacy" })).body).toBe("next")
+  })
+
+  it("renders the 404 page for a locale path that only the fallback route matches", async () => {
+    for (const prefixDefaultLocale of [true, false]) {
+      const run = await load(prefixDefaultLocale)
+      const { response, body } = await run("/fi/banana", { routePattern: "/[...i18nFallback]" })
+      expect(response.status).toBe(404)
+      expect(body).toBe("/404")
+    }
+  })
+
+  it("passes through plain ignore prefixes and their sub-paths", async () => {
+    const run = await load(true)
+    expect((await run("/_astro/chunk.js")).body).toBe("next")
+    expect((await run("/keystatic")).body).toBe("next")
+    expect((await run("/keystatic/collection/posts")).body).toBe("next")
+  })
+
+  it("passes through paths that match a glob ignore pattern", async () => {
+    const run = await load(true)
+    expect((await run("/api/uploads/nested/image.png")).body).toBe("next")
+    expect((await run("/api/uploads/photo.jpg")).response.status).toBe(302)
   })
 })
 
-describe("onRequest — plain prefix ignore patterns (auto-expanded)", () => {
-  it("passes through /_astro exact path", async () => {
-    expect((await run("/_astro")).status).toBe(200)
-  })
-
-  it("passes through /_astro sub-paths", async () => {
-    expect((await run("/_astro/chunk.js")).status).toBe(200)
-  })
-
-  it("passes through /_astro deeply nested paths", async () => {
-    expect((await run("/_astro/assets/image.webp")).status).toBe(200)
-  })
-
-  it("passes through /keystatic exact path", async () => {
-    expect((await run("/keystatic")).status).toBe(200)
-  })
-
-  it("passes through /keystatic sub-paths", async () => {
-    expect((await run("/keystatic/dashboard")).status).toBe(200)
-  })
-
-  it("passes through /keystatic deeply nested paths", async () => {
-    expect((await run("/keystatic/collection/posts/create")).status).toBe(200)
-  })
-})
-
-describe("onRequest — glob ignore patterns", () => {
-  it("passes through paths matching a glob pattern", async () => {
-    expect((await run("/api/uploads/photo.png")).status).toBe(200)
-  })
-
-  it("passes through nested paths matching a glob pattern", async () => {
-    expect((await run("/api/uploads/nested/image.png")).status).toBe(200)
-  })
-
-  it("does not ignore paths that don't match the glob extension", async () => {
-    const response = await run("/api/uploads/photo.jpg")
-    expect(response.status).toBe(302)
-  })
-
-  it("does not ignore paths outside the glob prefix", async () => {
-    const response = await run("/api/other/photo.png")
-    expect(response.status).toBe(302)
-  })
-})
-
-describe("onRequest — routing", () => {
-  it("passes through root /", async () => {
-    expect((await run("/")).status).toBe(200)
-  })
-
+describe("prefixDefaultLocale: true", () => {
   it("passes through locale-prefixed paths", async () => {
-    expect((await run("/en/about")).status).toBe(200)
-    expect((await run("/fi/about")).status).toBe(200)
+    const run = await load(true)
+    expect((await run("/en/about")).body).toBe("next")
+    expect((await run("/fi/about")).body).toBe("next")
   })
 
-  it("redirects unprefixed path to defaultLocale when no cookie", async () => {
-    const response = await run("/about")
+  it("redirects an unprefixed path to defaultLocale when no cookie", async () => {
+    const run = await load(true)
+    const { response } = await run("/about")
     expect(response.status).toBe(302)
     expect(response.headers.get("location")).toBe("/en/about")
   })
 
-  it("redirects unprefixed path to cookie locale", async () => {
-    const response = await run("/about", "fi")
-    expect(response.status).toBe(302)
+  it("redirects an unprefixed path to the cookie locale", async () => {
+    const run = await load(true)
+    const { response } = await run("/about", { cookie: "fi" })
     expect(response.headers.get("location")).toBe("/fi/about")
   })
 
-  it("redirects to defaultLocale when cookie has unknown locale", async () => {
-    const response = await run("/about", "de")
-    expect(response.status).toBe(302)
+  it("redirects to defaultLocale when the cookie has an unknown locale", async () => {
+    const run = await load(true)
+    const { response } = await run("/about", { cookie: "de" })
     expect(response.headers.get("location")).toBe("/en/about")
+  })
+})
+
+describe("prefixDefaultLocale: false", () => {
+  it("rewrites an unprefixed path to the default locale", async () => {
+    const run = await load(false)
+    const { response, body } = await run("/about")
+    expect(response.status).toBe(200)
+    expect(body).toBe("/en/about")
+  })
+
+  it("rewrites / to the default locale home page", async () => {
+    const run = await load(false)
+    expect((await run("/")).body).toBe("/en/")
+  })
+
+  it("passes through paths of the other locales", async () => {
+    const run = await load(false)
+    expect((await run("/fi/about")).body).toBe("next")
+  })
+
+  it("renders the 404 page for default locale paths with a prefix", async () => {
+    const run = await load(false)
+    const { response, body } = await run("/en/about")
+    expect(response.status).toBe(404)
+    expect(body).toBe("/404")
+  })
+
+  it("renders the 404 page when the rewritten page does not exist", async () => {
+    const run = await load(false)
+    const rewrite = (path: string) =>
+      Promise.resolve(new Response(path, { status: path === "/404" ? 200 : 404 }))
+    const { response, body } = await run("/banana", { rewrite })
+    expect(response.status).toBe(404)
+    expect(body).toBe("/404")
+  })
+
+  it("renders the 404 page when the rewrite throws", async () => {
+    const run = await load(false)
+    const rewrite = (path: string) =>
+      path === "/404" ? Promise.resolve(new Response(path)) : Promise.reject(new Error())
+    const { response, body } = await run("/banana", { rewrite })
+    expect(response.status).toBe(404)
+    expect(body).toBe("/404")
+  })
+
+  it("returns an empty 404 when the 404 page cannot be a rewrite target", async () => {
+    const run = await load(false)
+    const { response, body } = await run("/en/about", {
+      rewrite: () => Promise.reject(new Error()),
+    })
+    expect(response.status).toBe(404)
+    expect(body).toBe("")
+  })
+
+  it("passes through the second pass after its own rewrite", async () => {
+    const run = await load(false)
+    expect((await run("/en/about", { rewritten: true })).body).toBe("next")
   })
 })

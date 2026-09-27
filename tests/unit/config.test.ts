@@ -4,67 +4,59 @@ import { Config } from "../../src/lib/config"
 
 describe("Config.validate — locales", () => {
   it("throws if no locales are defined", () => {
-    expect(() => Config.validate({ locales: [] }, false)).toThrow("No locales defined.")
+    expect(() => Config.validate({ locales: [] })).toThrow("No locales defined.")
   })
 
   it("throws if a locale is missing a code", () => {
     expect(() =>
-      Config.validate({ locales: [{ code: "", name: "English", endonym: "English" }] }, false)
+      Config.validate({ locales: [{ code: "", name: "English", endonym: "English" }] })
     ).toThrow("A locale is missing a code.")
   })
 
   it("throws if a locale code contains invalid characters", () => {
     expect(() =>
-      Config.validate({ locales: [{ code: "en US", name: "English", endonym: "English" }] }, false)
+      Config.validate({ locales: [{ code: "en US", name: "English", endonym: "English" }] })
     ).toThrow('Locale code "en US" contains invalid characters.')
   })
 
   it("passes for locale codes with hyphens", () => {
     expect(() =>
-      Config.validate({ locales: [{ code: "en-US", name: "English", endonym: "English" }] }, false)
+      Config.validate({ locales: [{ code: "en-US", name: "English", endonym: "English" }] })
     ).not.toThrow()
   })
 
   it("throws if a locale has an invalid direction", () => {
     expect(() =>
-      Config.validate(
-        {
-          locales: [{ code: "en", name: "English", endonym: "English", direction: "btt" as never }],
-        },
-        false
-      )
+      Config.validate({
+        locales: [{ code: "en", name: "English", endonym: "English", direction: "btt" as never }],
+      })
     ).toThrow('Locale "en" has an invalid direction "btt". Must be "ltr" or "rtl".')
   })
 
   it("passes with direction ltr", () => {
     expect(() =>
-      Config.validate(
-        { locales: [{ code: "en", name: "English", endonym: "English", direction: "ltr" }] },
-        false
-      )
+      Config.validate({
+        locales: [{ code: "en", name: "English", endonym: "English", direction: "ltr" }],
+      })
     ).not.toThrow()
   })
 
   it("passes with direction rtl", () => {
     expect(() =>
-      Config.validate(
-        { locales: [{ code: "ar", name: "Arabic", endonym: "العربية", direction: "rtl" }] },
-        false
-      )
+      Config.validate({
+        locales: [{ code: "ar", name: "Arabic", endonym: "العربية", direction: "rtl" }],
+      })
     ).not.toThrow()
   })
 
   it("throws if locale codes are duplicated", () => {
     expect(() =>
-      Config.validate(
-        {
-          locales: [
-            { code: "en", name: "English", endonym: "English" },
-            { code: "en", name: "English (duplicate)", endonym: "English" },
-          ],
-        },
-        false
-      )
+      Config.validate({
+        locales: [
+          { code: "en", name: "English", endonym: "English" },
+          { code: "en", name: "English (duplicate)", endonym: "English" },
+        ],
+      })
     ).toThrow("Duplicate locale codes: en.")
   })
 })
@@ -72,25 +64,25 @@ describe("Config.validate — locales", () => {
 describe("Config.validate — defaultLocale", () => {
   it("throws if defaultLocale is not in locales", () => {
     expect(() =>
-      Config.validate(
-        { locales: [{ code: "en", name: "English", endonym: "English" }], defaultLocale: "fi" },
-        false
-      )
+      Config.validate({
+        locales: [{ code: "en", name: "English", endonym: "English" }],
+        defaultLocale: "fi",
+      })
     ).toThrow('defaultLocale "fi" not found in locales.')
   })
 
   it("passes if defaultLocale is in locales", () => {
     expect(() =>
-      Config.validate(
-        { locales: [{ code: "en", name: "English", endonym: "English" }], defaultLocale: "en" },
-        false
-      )
+      Config.validate({
+        locales: [{ code: "en", name: "English", endonym: "English" }],
+        defaultLocale: "en",
+      })
     ).not.toThrow()
   })
 
   it("passes if defaultLocale is omitted", () => {
     expect(() =>
-      Config.validate({ locales: [{ code: "en", name: "English", endonym: "English" }] }, false)
+      Config.validate({ locales: [{ code: "en", name: "English", endonym: "English" }] })
     ).not.toThrow()
   })
 })
@@ -130,5 +122,32 @@ describe("Config.validate — full config", () => {
     expect(() =>
       Config.validate({ locales: [{ code: "en", name: "English", endonym: "English" }] })
     ).not.toThrow()
+  })
+})
+
+describe("Config.resolve", () => {
+  const locales = [
+    { code: "en", name: "English", endonym: "English" },
+    { code: "fi", name: "Finnish", endonym: "Suomi" },
+  ]
+
+  it("defaults defaultLocale to the first locale", () => {
+    expect(Config.resolve({ locales }).defaultLocale).toBe("en")
+  })
+
+  it("defaults prefixDefaultLocale to true", () => {
+    expect(Config.resolve({ locales }).prefixDefaultLocale).toBe(true)
+  })
+
+  it("keeps prefixDefaultLocale false", () => {
+    expect(Config.resolve({ locales, prefixDefaultLocale: false }).prefixDefaultLocale).toBe(false)
+  })
+
+  it("always ignores Astro asset paths", () => {
+    expect(Config.resolve({ locales, ignore: ["/keystatic"] }).ignore).toEqual([
+      "/_astro",
+      "/_image",
+      "/keystatic",
+    ])
   })
 })
