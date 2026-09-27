@@ -23,3 +23,6 @@ pnpm-debug.log*
 
 # Test results
 tests/e2e/results/
+
+# Fixture builds
+tests/e2e/fixtures/**/dist/

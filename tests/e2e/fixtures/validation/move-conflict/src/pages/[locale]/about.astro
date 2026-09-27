@@ -1,0 +1,7 @@
+---
+import { Locale } from "@mannisto/astro-i18n/runtime"
+
+export const getStaticPaths = () => Locale.supported.map((code) => ({ params: { locale: code } }))
+---
+
+<h1>About {Astro.params.locale}</h1>

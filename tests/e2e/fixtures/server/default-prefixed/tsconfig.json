@@ -1,8 +1,0 @@
-{
-  "extends": "astro/tsconfigs/strict",
-  "compilerOptions": {
-    "paths": {
-      "@mannisto/astro-i18n/runtime": ["../../node_modules/@mannisto/astro-i18n/dist/runtime.d.ts"]
-    }
-  }
-}
