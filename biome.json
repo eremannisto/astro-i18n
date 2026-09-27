@@ -1,7 +1,9 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.4.16/schema.json",
   "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
-  "files": { "includes": ["**", "!!**/dist"] },
+  "files": {
+    "includes": ["**", "!!**/dist", "!tests/e2e/fixtures/validation/invalid-json/src/translations"]
+  },
   "formatter": {
     "indentStyle": "space",
     "lineWidth": 100,

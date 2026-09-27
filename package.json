@@ -1,6 +1,6 @@
 {
   "name": "@mannisto/astro-i18n",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "A flexible alternative to Astro's built-in i18n, with locale routing, detection, and translations for static and SSR sites.",
   "license": "MIT",
   "type": "module",
@@ -33,17 +33,13 @@
       "types": "./dist/middleware.d.ts",
       "default": "./dist/middleware.js"
     },
-    "./detect/server": {
-      "types": "./dist/detect/server.d.ts",
-      "default": "./dist/detect/server.js"
+    "./routes/detect": {
+      "types": "./dist/routes/detect.d.ts",
+      "default": "./dist/routes/detect.js"
     },
-    "./detect/static": {
-      "types": "./dist/detect/static.d.ts",
-      "default": "./dist/detect/static.js"
-    },
-    "./detect/hybrid": {
-      "types": "./dist/detect/hybrid.d.ts",
-      "default": "./dist/detect/hybrid.js"
+    "./routes/fallback": {
+      "types": "./dist/routes/fallback.d.ts",
+      "default": "./dist/routes/fallback.js"
     },
     "./components": {
       "default": "./src/components/index.ts"
@@ -56,15 +52,6 @@
       ],
       "middleware": [
         "./dist/middleware.d.ts"
-      ],
-      "detect/server": [
-        "./dist/detect/server.d.ts"
-      ],
-      "detect/static": [
-        "./dist/detect/static.d.ts"
-      ],
-      "detect/hybrid": [
-        "./dist/detect/hybrid.d.ts"
       ],
       "components": [
         "./src/components/index.ts"
@@ -80,13 +67,13 @@
     "prepublishOnly": "pnpm build",
     "lint": "biome lint --write .",
     "format": "biome format --write .",
-    "check": "biome check .",
+    "check": "biome check . && tsc --noEmit",
     "test:unit": "vitest run",
     "test:e2e": "pnpm build > /dev/null 2>&1 && playwright test",
     "test": "pnpm run test:unit && pnpm run test:e2e"
   },
   "peerDependencies": {
-    "astro": "^5.0.0 || ^6.0.0"
+    "astro": "^6.0.0 || ^7.0.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.16",
