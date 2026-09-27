@@ -1,6 +1,6 @@
 import {
   NAME
-} from "./chunk-DFLYFBBG.js";
+} from "./chunk-MSYXYLNW.js";
 
 // src/lib/locale.ts
 import { config, translations } from "virtual:astro-i18n/config";
@@ -28,21 +28,12 @@ function buildTranslator(code) {
     };
   }
   const record = translations[code];
+  const fallback = translations[config.defaultLocale];
   if (!record) throw new Error(`${NAME} No translations found for locale "${code}".`);
   return (key) => {
-    if (!(key in record))
-      throw new Error(`${NAME} Missing translation key "${key}" in ${code}.json`);
-    return record[key];
-  };
-}
-function buildResponse(astro) {
-  return () => {
-    const firstSegment = astro.url.pathname.split("/").filter(Boolean)[0];
-    const codes = config.locales.map((l) => l.code);
-    if (codes.includes(firstSegment)) return null;
-    const cookie = astro.cookies.get("locale")?.value;
-    const locale = cookie && codes.includes(cookie) ? cookie : config.defaultLocale;
-    return astro.redirect(`/${locale}${astro.url.pathname}`, 302);
+    if (key in record) return record[key];
+    if (key in fallback) return fallback[key];
+    throw new Error(`${NAME} Missing translation key "${key}" in ${config.defaultLocale}.json`);
   };
 }
 var Locale = {
@@ -68,14 +59,16 @@ var Locale = {
     return codes.includes(first) ? first : config.defaultLocale;
   },
   /**
-   * Generates a locale-prefixed URL path.
+   * Generates the URL path of a page in the specified locale.
    * Strips any existing locale prefix and prepends the specified locale.
+   * The default locale has no prefix when prefixDefaultLocale is false.
    */
   url(locale, path = "/") {
     const codes = config.locales.map((l) => l.code);
     const clean = path.startsWith("/") ? path : `/${path}`;
     const segments = clean.split("/");
     const stripped = codes.includes(segments[1]) ? `/${segments.slice(2).join("/")}` : clean;
+    if (locale === config.defaultLocale && !config.prefixDefaultLocale) return stripped;
     return stripped === "/" ? `/${locale}/` : `/${locale}${stripped}`;
   },
   /**
@@ -109,8 +102,7 @@ var Locale = {
       endonym: localeConfig.endonym,
       phrase: localeConfig.phrase,
       direction: localeConfig.direction ?? "ltr",
-      t: buildTranslator(code),
-      response: buildResponse(astro)
+      t: buildTranslator(code)
     };
   },
   /**

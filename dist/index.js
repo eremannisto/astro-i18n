@@ -1,10 +1,11 @@
 import {
+  FALLBACK_PATTERN,
   NAME
-} from "./chunk-DFLYFBBG.js";
+} from "./chunk-MSYXYLNW.js";
 
 // src/index.ts
-import fs2 from "fs";
-import path from "path";
+import fs3 from "fs";
+import path2 from "path";
 
 // src/lib/config.ts
 var Config = {
@@ -15,6 +16,7 @@ var Config = {
     return {
       locales: config.locales,
       defaultLocale: config.defaultLocale ?? config.locales[0].code,
+      prefixDefaultLocale: config.prefixDefaultLocale ?? true,
       ignore: ["/_astro", "/_image", ...config.ignore ?? []],
       translations: config.translations
     };
@@ -52,8 +54,67 @@ var Config = {
   }
 };
 
-// src/lib/translations.ts
+// src/lib/output.ts
 import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+var Output = {
+  /**
+   * Moves the prerendered pages of the default locale to the root of the output,
+   * e.g. en/about/index.html to about/index.html. Throws if a target file exists.
+   */
+  moveDefaultLocale(dir, locale) {
+    const root = fileURLToPath(dir);
+    const source = path.join(root, locale);
+    const moves = [];
+    if (fs.existsSync(source)) {
+      const files = fs.readdirSync(source, { recursive: true, encoding: "utf8" });
+      for (const file of files) {
+        const from = path.join(source, file);
+        if (fs.statSync(from).isFile()) moves.push([from, path.join(root, file)]);
+      }
+    }
+    const page = path.join(root, `${locale}.html`);
+    if (fs.existsSync(page)) moves.push([page, path.join(root, "index.html")]);
+    for (const [from, to] of moves) {
+      if (fs.existsSync(to)) {
+        throw new Error(
+          `${NAME} Cannot move ${path.relative(root, from)} to ${path.relative(root, to)}: the file already exists. Two pages have the same URL.`
+        );
+      }
+    }
+    for (const [from, to] of moves) {
+      fs.mkdirSync(path.dirname(to), { recursive: true });
+      fs.renameSync(from, to);
+    }
+    fs.rmSync(source, { recursive: true, force: true });
+  },
+  /**
+   * Writes the root index.html for static sites. The page reads the locale cookie
+   * and sends the browser to the stored locale or to the default locale.
+   */
+  writeDetectPage(dir, config) {
+    const supported = config.locales.map((l) => l.code);
+    const html = `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      const supported = ${JSON.stringify(supported)};
+      const defaultLocale = "${config.defaultLocale}";
+      const stored = document.cookie.split("; ").find(r => r.startsWith("locale="))?.split("=")[1];
+      const locale = (stored && supported.includes(stored)) ? stored : defaultLocale;
+      window.location.replace("/" + locale + "/");
+    </script>
+  </head>
+  <body></body>
+</html>`;
+    fs.writeFileSync(new URL("index.html", dir), html);
+  }
+};
+
+// src/lib/translations.ts
+import fs2 from "fs";
 var Translations = {
   /**
    * Loads translation JSON files for all configured locales.
@@ -63,14 +124,18 @@ var Translations = {
     const data = {};
     for (const locale of config.locales) {
       const filePath = `${config.translations}/${locale.code}.json`;
-      if (!fs.existsSync(filePath)) throw new Error(`${NAME} Missing translation file: ${filePath}`);
-      data[locale.code] = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+      if (!fs2.existsSync(filePath)) throw new Error(`${NAME} Missing translation file: ${filePath}`);
+      try {
+        data[locale.code] = JSON.parse(fs2.readFileSync(filePath, "utf-8"));
+      } catch (e) {
+        throw new Error(`${NAME} Invalid JSON in ${filePath}: ${e.message}`);
+      }
     }
     return data;
   },
   /**
    * Warns about translation keys present in the default locale but missing in other locales.
-   * Does not throw — missing keys are allowed to support incremental translation workflows.
+   * Does not throw — t() uses the default locale text for a missing key.
    */
   validate(data, defaultLocale) {
     const defaultKeys = new Set(Object.keys(data[defaultLocale]));
@@ -81,37 +146,6 @@ var Translations = {
         if (!keys.has(key)) console.warn(`${NAME} Missing translation key "${key}" in ${code}.json`);
       }
     }
-  }
-};
-
-// src/lib/utils.ts
-var Utils = {
-  /**
-   * No adapter configured — all pages are prerendered, root index.html
-   * is written at build time via astro:build:done.
-   */
-  isStatic(config) {
-    return !config.adapter && config.output === "static";
-  },
-  /**
-   * Adapter present with server output — all pages are SSR, all redirects
-   * are handled server-side via middleware.
-   */
-  isServer(config) {
-    return !!config.adapter && config.output === "server";
-  },
-  /**
-   * Adapter present with static output — locale pages are prerendered,
-   * root route is SSR, unprefixed paths are redirected via middleware.
-   */
-  isHybrid(config) {
-    return !!config.adapter && config.output === "static";
-  },
-  /**
-   * Checks if an adapter is configured.
-   */
-  hasAdapter(config) {
-    return !!config.adapter;
   }
 };
 
@@ -143,7 +177,7 @@ function createVitePlugin(getConfig, getTranslations) {
 // src/index.ts
 function watchTranslations(server, resolved, logger, onReload) {
   if (!resolved.translations) return;
-  const directory = path.resolve(resolved.translations);
+  const directory = path2.resolve(resolved.translations);
   server.watcher.add(directory);
   server.watcher.setMaxListeners(server.watcher.getMaxListeners() + 1);
   server.watcher.on("change", (file) => {
@@ -165,16 +199,19 @@ function watchTranslations(server, resolved, logger, onReload) {
 function i18n(config) {
   let resolved;
   let translationData = {};
-  let staticMode = false;
+  let hasAdapter = false;
+  let detectRoot = false;
+  let clientDir;
   return {
     name: NAME,
     hooks: {
       /**
-       * Runs at config setup time. Validates, resolves, and registers the
-       * Vite plugin and locale detection routes.
+       * Runs at config setup time. Validates and resolves the config, then
+       * registers the Vite plugin, the routes, and the middleware.
        */
       "astro:config:setup": ({
         config: astroConfig,
+        command,
         updateConfig,
         injectRoute,
         addMiddleware,
@@ -186,16 +223,21 @@ function i18n(config) {
           );
         }
         Config.validate(config);
-        if (config.ignore && !Utils.hasAdapter(astroConfig)) {
-          logger.warn(
-            '"ignore" has no effect in static mode \u2014 middleware requires a server adapter.'
+        resolved = Config.resolve(config);
+        hasAdapter = Boolean(astroConfig.adapter);
+        const hasIndexPage = fs3.existsSync(new URL("./src/pages/index.astro", astroConfig.root));
+        if (hasIndexPage && !resolved.prefixDefaultLocale) {
+          throw new Error(
+            `${NAME} src/pages/index.astro has the same URL as the default locale home page. Remove it, or set prefixDefaultLocale to true.`
           );
         }
-        const indexPath = new URL("./src/pages/index.astro", astroConfig.root);
-        if (fs2.existsSync(indexPath)) {
-          throw new Error(`${NAME} Found conflicting src/pages/index.astro \u2014 remove it.`);
+        if (hasIndexPage) {
+          logger.info("src/pages/index.astro replaces the locale detection at /.");
         }
-        resolved = Config.resolve(config);
+        detectRoot = resolved.prefixDefaultLocale && !hasIndexPage;
+        if (config.ignore && !hasAdapter) {
+          logger.warn('"ignore" has no effect in static builds \u2014 it requires a server adapter.');
+        }
         updateConfig({
           vite: {
             optimizeDeps: { exclude: ["@mannisto/astro-i18n"] },
@@ -207,11 +249,21 @@ function i18n(config) {
             ]
           }
         });
-        if (Utils.isStatic(astroConfig)) {
-          staticMode = true;
-        } else {
-          const entrypoint = Utils.isServer(astroConfig) ? "@mannisto/astro-i18n/detect/server" : "@mannisto/astro-i18n/detect/hybrid";
-          injectRoute({ pattern: "/", entrypoint, prerender: false });
+        if (hasAdapter && detectRoot) {
+          injectRoute({
+            pattern: "/",
+            entrypoint: "@mannisto/astro-i18n/routes/detect",
+            prerender: false
+          });
+        }
+        if (hasAdapter && (command === "build" || resolved.prefixDefaultLocale)) {
+          injectRoute({
+            pattern: FALLBACK_PATTERN,
+            entrypoint: "@mannisto/astro-i18n/routes/fallback",
+            prerender: false
+          });
+        }
+        if (hasAdapter || !resolved.prefixDefaultLocale) {
           addMiddleware({ entrypoint: "@mannisto/astro-i18n/middleware", order: "pre" });
         }
       },
@@ -219,7 +271,8 @@ function i18n(config) {
        * Runs after the final config is resolved. Loads and validates
        * translation files if a translations path is configured.
        */
-      "astro:config:done": () => {
+      "astro:config:done": ({ config: astroConfig }) => {
+        clientDir = astroConfig.build.client;
         if (!resolved.translations) return;
         translationData = Translations.load(resolved);
         Translations.validate(translationData, resolved.defaultLocale);
@@ -233,26 +286,16 @@ function i18n(config) {
           translationData = data;
         });
       },
-      // Writes the root index.html for locale detection in static mode.
+      /**
+       * Runs after the build. Moves the default locale pages to the root, or
+       * writes the root locale detection page for static sites.
+       */
       "astro:build:done": ({ dir }) => {
-        if (!staticMode) return;
-        const supported = resolved.locales.map((l) => l.code);
-        const defaultLocale = resolved.defaultLocale;
-        const html = `<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <script>
-      const supported = ${JSON.stringify(supported)};
-      const defaultLocale = "${defaultLocale}";
-      const stored = document.cookie.split("; ").find(r => r.startsWith("locale="))?.split("=")[1];
-      const locale = (stored && supported.includes(stored)) ? stored : defaultLocale;
-      window.location.replace("/" + locale + "/");
-    </script>
-  </head>
-  <body></body>
-</html>`;
-        fs2.writeFileSync(new URL("index.html", dir), html);
+        if (!resolved.prefixDefaultLocale) {
+          Output.moveDefaultLocale(hasAdapter ? clientDir : dir, resolved.defaultLocale);
+        } else if (!hasAdapter && detectRoot) {
+          Output.writeDetectPage(dir, resolved);
+        }
       }
     }
   };

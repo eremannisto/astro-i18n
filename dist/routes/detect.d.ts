@@ -1,7 +1,7 @@
 import { APIRoute } from 'astro';
 
 /**
- * Injected at `/` when `output: "server"` is configured.
+ * Injected at `/` when a server adapter is configured and prefixDefaultLocale is true.
  *
  * Reads the locale cookie for a stored preference, falls back to `defaultLocale`
  * — never infers locale from `Accept-Language` or other headers. Sets the cookie

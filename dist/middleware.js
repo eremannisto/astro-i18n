@@ -1,31 +1,53 @@
+import {
+  FALLBACK_PATTERN
+} from "./chunk-MSYXYLNW.js";
+
 // src/middleware.ts
 import { config } from "virtual:astro-i18n/config";
 import { defineMiddleware } from "astro/middleware";
 import pm from "picomatch";
+var codes = config.locales.map((l) => l.code);
 function expandPattern(pattern) {
   if (pattern.includes("*")) return [pattern];
   return [pattern, `${pattern}/**`];
 }
-var onRequest = defineMiddleware(({ url, cookies, redirect, isPrerendered }, next) => {
-  if (isPrerendered) return next();
-  const pathname = url.pathname;
-  const ignore = config.ignore ?? [];
-  const codes = config.locales.map((l) => l.code);
-  const expanded = ignore.flatMap(expandPattern);
-  if (expanded.some((pattern) => pm(pattern)(pathname))) return next();
-  if (pathname === "/") return next();
-  const firstSegment = pathname.split("/")[1];
-  if (codes.includes(firstSegment)) {
-    const stored2 = cookies.get("locale")?.value;
-    if (stored2 !== firstSegment) {
-      cookies.set("locale", firstSegment, { path: "/", sameSite: "lax" });
-    }
-    return next();
+var isIgnored = pm(config.ignore.flatMap(expandPattern));
+function isRootRoute(pattern) {
+  return !pattern.startsWith("/[locale]") && pattern !== "/404" && pattern !== FALLBACK_PATTERN;
+}
+var onRequest = defineMiddleware((context, next) => {
+  if (context.isPrerendered && !import.meta.env.DEV) return next();
+  if (context.locals.i18nRewrite) return next();
+  const { pathname } = context.url;
+  if (isIgnored(pathname) || isRootRoute(context.routePattern)) return next();
+  const locale = pathname.split("/")[1];
+  if (config.prefixDefaultLocale) {
+    return codes.includes(locale) ? render(context, next) : redirect(context);
   }
-  const stored = cookies.get("locale")?.value;
-  const targetLocale = stored && codes.includes(stored) ? stored : config.defaultLocale;
-  return redirect(`/${targetLocale}${pathname}`, 302);
+  if (locale === config.defaultLocale) return notFound(context);
+  return codes.includes(locale) ? render(context, next) : rewrite(context);
 });
+function render(context, next) {
+  return context.routePattern === FALLBACK_PATTERN ? notFound(context) : next();
+}
+function redirect(context) {
+  const stored = context.cookies.get("locale")?.value;
+  const locale = stored && codes.includes(stored) ? stored : config.defaultLocale;
+  return context.redirect(`/${locale}${context.url.pathname}`, 302);
+}
+async function rewrite(context) {
+  context.locals.i18nRewrite = true;
+  const path = `/${config.defaultLocale}${context.url.pathname}`;
+  const response = await context.rewrite(path).catch(() => null);
+  if (!response || response.status === 404) return notFound(context);
+  return response;
+}
+async function notFound(context) {
+  context.locals.i18nRewrite = true;
+  const response = await context.rewrite("/404").catch(() => null);
+  if (!response || response.status >= 500) return new Response(null, { status: 404 });
+  return new Response(response.body, { status: 404, headers: response.headers });
+}
 export {
   onRequest
 };

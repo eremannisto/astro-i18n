@@ -30,16 +30,22 @@ type I18nConfig = {
      */
     defaultLocale?: LocaleCode;
     /**
-     * URL path prefixes that should bypass the middleware.
+     * When true, the default locale uses a prefix like the other locales: /en/about.
+     * When false, the default locale has no prefix: /about.
+     * Defaults to true.
+     */
+    prefixDefaultLocale?: boolean;
+    /**
+     * URL path prefixes that the middleware does not change.
      * Only applies when a server adapter is configured.
-     * Always includes "/_astro" internally.
+     * Always includes "/_astro" and "/_image" internally.
      *
      * @example ["/keystatic", "/api"]
      */
     ignore?: string[];
     /**
      * Path to the translations directory, relative to the project root.
-     * Each locale should have a corresponding JSON file, e.g. en.json, fi.json.
+     * Each locale must have a JSON file, e.g. en.json, fi.json.
      * If not set, translations are disabled.
      *
      * @example "./src/translations"
@@ -51,12 +57,6 @@ type I18nConfig = {
  */
 type AstroContext = {
     url: URL;
-    cookies: {
-        get(name: string): {
-            value: string;
-        } | undefined;
-    };
-    redirect(path: string, status?: number): Response;
 };
 /**
  * The locale instance returned by Locale.use()
@@ -68,7 +68,6 @@ type LocaleInstance = {
     phrase: string | undefined;
     direction: LocaleDirection;
     t: (key: string) => string;
-    response(): Response | null;
 };
 
 export type { AstroContext as A, I18nConfig as I, LocaleCode as L, LocaleConfig as a, LocaleInstance as b };
