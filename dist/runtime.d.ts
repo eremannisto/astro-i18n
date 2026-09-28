@@ -1,4 +1,4 @@
-import { L as LocaleCode, a as LocaleConfig, A as AstroContext, c as LocaleInstance } from './types-DGnNjMf6.js';
+import { L as LocaleCode, a as LocaleConfig, A as AstroContext, c as LocaleInstance } from './types-BgzIC7CZ.js';
 
 /**
  * Returns locale configuration by code, or all locales if no code is provided.

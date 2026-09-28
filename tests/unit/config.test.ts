@@ -117,8 +117,8 @@ describe("Config.resolve", () => {
     expect(Config.resolve({ locales }).defaultLocale).toBe("en")
   })
 
-  it("defaults prefixDefaultLocale to true", () => {
-    expect(Config.resolve({ locales }).prefixDefaultLocale).toBe(true)
+  it("defaults prefixDefaultLocale to false", () => {
+    expect(Config.resolve({ locales }).prefixDefaultLocale).toBe(false)
   })
 
   it("keeps prefixDefaultLocale false", () => {

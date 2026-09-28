@@ -10,7 +10,7 @@ export const Config = {
     return {
       locales: config.locales,
       defaultLocale: config.defaultLocale ?? config.locales[0].code,
-      prefixDefaultLocale: config.prefixDefaultLocale ?? true,
+      prefixDefaultLocale: config.prefixDefaultLocale ?? false,
       base: base.replace(/\/+$/, ""),
       translations: config.translations,
     }

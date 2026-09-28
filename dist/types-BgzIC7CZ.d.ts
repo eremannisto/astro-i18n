@@ -32,7 +32,7 @@ type I18nConfig = {
     /**
      * When true, the default locale uses a prefix like the other locales: /en/about.
      * When false, the default locale has no prefix: /about.
-     * Defaults to true.
+     * Defaults to false, the same as in Astro's built-in i18n.
      */
     prefixDefaultLocale?: boolean;
     /**
