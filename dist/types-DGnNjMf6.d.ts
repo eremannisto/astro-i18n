@@ -36,14 +36,6 @@ type I18nConfig = {
      */
     prefixDefaultLocale?: boolean;
     /**
-     * URL path prefixes that the middleware does not change.
-     * Only applies when a server adapter is configured.
-     * Always includes "/_astro" and "/_image" internally.
-     *
-     * @example ["/keystatic", "/api"]
-     */
-    ignore?: string[];
-    /**
      * Path to the translations directory, relative to the project root.
      * Each locale must have a JSON file, e.g. en.json, fi.json.
      * If not set, translations are disabled.
@@ -74,4 +66,4 @@ type LocaleInstance = {
     t: (key: string, values?: TranslationValues) => string;
 };
 
-export type { AstroContext as A, I18nConfig as I, LocaleCode as L, LocaleConfig as a, LocaleInstance as b };
+export type { AstroContext as A, I18nConfig as I, LocaleCode as L, TranslationValues as T, LocaleConfig as a, LocaleDirection as b, LocaleInstance as c };

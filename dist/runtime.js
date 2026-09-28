@@ -1,15 +1,25 @@
 import {
+  Paths
+} from "./chunk-4N5FPK3J.js";
+import {
+  COOKIE_AGE,
   NAME
-} from "./chunk-MSYXYLNW.js";
+} from "./chunk-M3HKFVOR.js";
 
 // src/lib/locale.ts
 import { config, translations } from "virtual:astro-i18n/config";
 function setCookie(name, value) {
   if ("cookieStore" in window) {
-    void window.cookieStore.set({ name, value, path: "/", sameSite: "lax" });
+    void window.cookieStore.set({
+      name,
+      value,
+      path: "/",
+      sameSite: "lax",
+      expires: Date.now() + COOKIE_AGE * 1e3
+    });
     return;
   }
-  document.cookie = `${name}=${value}; path=/; SameSite=Lax`;
+  document.cookie = `${name}=${value}; path=/; SameSite=Lax; Max-Age=${COOKIE_AGE}`;
 }
 function getLocale(code) {
   if (code) {
@@ -23,7 +33,7 @@ function buildTranslator(code) {
   if (!config.translations) {
     return (key) => {
       throw new Error(
-        `${NAME} t("${key}") was called but translations are not configured. Add a translations path to your i18n config to enable translations.`
+        `${NAME} t("${key}") was called but translations are not configured. Add a translations path to your i18n config to enable translations. In the browser, t() is not available: pass the translated text as a prop.`
       );
     };
   }
@@ -62,22 +72,24 @@ var Locale = {
    * Falls back to the default locale if no valid locale prefix is found.
    */
   fromURL(url) {
-    const first = url.pathname.split("/")[1];
+    const first = Paths.strip(url.pathname).split("/")[1];
     const codes = config.locales.map((l) => l.code);
     return codes.includes(first) ? first : config.defaultLocale;
   },
   /**
-   * Generates the URL path of a page in the specified locale.
-   * Strips any existing locale prefix and prepends the specified locale.
+   * Generates the URL path of a page in the specified locale, with the Astro base.
+   * Strips any existing base and locale prefix and prepends the specified locale.
    * The default locale has no prefix when prefixDefaultLocale is false.
    */
   url(locale, path = "/") {
     const codes = config.locales.map((l) => l.code);
-    const clean = path.startsWith("/") ? path : `/${path}`;
+    const clean = Paths.strip(path.startsWith("/") ? path : `/${path}`);
     const segments = clean.split("/");
     const stripped = codes.includes(segments[1]) ? `/${segments.slice(2).join("/")}` : clean;
-    if (locale === config.defaultLocale && !config.prefixDefaultLocale) return stripped;
-    return stripped === "/" ? `/${locale}/` : `/${locale}${stripped}`;
+    if (locale === config.defaultLocale && !config.prefixDefaultLocale) {
+      return Paths.add(stripped);
+    }
+    return Paths.add(stripped === "/" ? `/${locale}/` : `/${locale}${stripped}`);
   },
   /**
    * Switches the current locale and navigates to the new locale URL.
@@ -87,6 +99,10 @@ var Locale = {
   switch(locale, path) {
     if (typeof window === "undefined") {
       console.warn(`${NAME} Locale.switch() can only be called in the browser.`);
+      return;
+    }
+    if (!Locale.supported.includes(locale)) {
+      console.error(`${NAME} Locale.switch() got an unknown locale "${locale}".`);
       return;
     }
     setCookie("locale", locale);

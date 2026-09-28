@@ -1,7 +1,7 @@
 import {
   FALLBACK_PATTERN,
   NAME
-} from "./chunk-MSYXYLNW.js";
+} from "./chunk-M3HKFVOR.js";
 
 // src/index.ts
 import fs3 from "fs";
@@ -11,13 +11,14 @@ import path2 from "path";
 var Config = {
   /**
    * Applies defaults to the raw user config and returns a fully resolved config.
+   * The base is the Astro base option, e.g. "/docs/".
    */
-  resolve(config) {
+  resolve(config, base = "/") {
     return {
       locales: config.locales,
       defaultLocale: config.defaultLocale ?? config.locales[0].code,
       prefixDefaultLocale: config.prefixDefaultLocale ?? true,
-      ignore: ["/_astro", "/_image", ...config.ignore ?? []],
+      base: base.replace(/\/+$/, ""),
       translations: config.translations
     };
   },
@@ -101,10 +102,11 @@ var Output = {
     <meta charset="UTF-8" />
     <script>
       const supported = ${JSON.stringify(supported)};
-      const defaultLocale = "${config.defaultLocale}";
+      const base = ${JSON.stringify(config.base)};
+      const defaultLocale = ${JSON.stringify(config.defaultLocale)};
       const stored = document.cookie.split("; ").find(r => r.startsWith("locale="))?.split("=")[1];
       const locale = (stored && supported.includes(stored)) ? stored : defaultLocale;
-      window.location.replace("/" + locale + "/");
+      window.location.replace(base + "/" + locale + "/");
     </script>
   </head>
   <body></body>
@@ -137,13 +139,13 @@ var Translations = {
    * Warns about translation keys present in the default locale but missing in other locales.
    * Does not throw — t() returns the key name for a missing key.
    */
-  validate(data, defaultLocale) {
+  validate(data, defaultLocale, logger) {
     const defaultKeys = new Set(Object.keys(data[defaultLocale]));
     for (const [code, record] of Object.entries(data)) {
       if (code === defaultLocale) continue;
       const keys = new Set(Object.keys(record));
       for (const key of defaultKeys) {
-        if (!keys.has(key)) console.warn(`${NAME} Missing translation key "${key}" in ${code}.json`);
+        if (!keys.has(key)) logger.warn(`Missing translation key "${key}" in ${code}.json`);
       }
     }
   }
@@ -163,13 +165,20 @@ function createVitePlugin(getConfig, getTranslations) {
     },
     // Vite hook — generates the module source for the resolved ID.
     // Serialises the current config and translations as a JS module.
-    load(id) {
-      if (id === RESOLVED_ID) {
+    // The browser gets the locale config only: t() runs on the server.
+    load(id, options) {
+      if (id !== RESOLVED_ID) return;
+      if (!options?.ssr) {
+        const { translations: _, ...config } = getConfig();
         return `
-          export const config = ${JSON.stringify(getConfig())}
-          export const translations = ${JSON.stringify(getTranslations())}
+          export const config = ${JSON.stringify(config)}
+          export const translations = {}
         `;
       }
+      return `
+        export const config = ${JSON.stringify(getConfig())}
+        export const translations = ${JSON.stringify(getTranslations())}
+      `;
     }
   };
 }
@@ -184,7 +193,7 @@ function watchTranslations(server, resolved, logger, onReload) {
     if (!file.includes(directory) || !file.endsWith(".json")) return;
     try {
       const data = Translations.load(resolved);
-      Translations.validate(data, resolved.defaultLocale);
+      Translations.validate(data, resolved.defaultLocale, logger);
       onReload(data);
     } catch (e) {
       logger.error(`Failed to reload translations: ${e.message}`);
@@ -223,7 +232,7 @@ function i18n(config) {
           );
         }
         Config.validate(config);
-        resolved = Config.resolve(config);
+        resolved = Config.resolve(config, astroConfig.base);
         hasAdapter = Boolean(astroConfig.adapter);
         const hasIndexPage = fs3.existsSync(new URL("./src/pages/index.astro", astroConfig.root));
         if (hasIndexPage && !resolved.prefixDefaultLocale) {
@@ -235,8 +244,10 @@ function i18n(config) {
           logger.info("src/pages/index.astro replaces the locale detection at /.");
         }
         detectRoot = resolved.prefixDefaultLocale && !hasIndexPage;
-        if (config.ignore && !hasAdapter) {
-          logger.warn('"ignore" has no effect in static builds \u2014 it requires a server adapter.');
+        if ("ignore" in config) {
+          logger.warn(
+            'The "ignore" option was removed in v3. The middleware now skips all pages outside the [locale] folder. Remove the option from your config.'
+          );
         }
         updateConfig({
           vite: {
@@ -271,11 +282,11 @@ function i18n(config) {
        * Runs after the final config is resolved. Loads and validates
        * translation files if a translations path is configured.
        */
-      "astro:config:done": ({ config: astroConfig }) => {
+      "astro:config:done": ({ config: astroConfig, logger }) => {
         clientDir = astroConfig.build.client;
         if (!resolved.translations) return;
         translationData = Translations.load(resolved);
-        Translations.validate(translationData, resolved.defaultLocale);
+        Translations.validate(translationData, resolved.defaultLocale, logger);
       },
       /**
        * Runs when the dev server starts. Sets up file watching so translation

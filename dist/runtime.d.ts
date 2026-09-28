@@ -1,4 +1,4 @@
-import { L as LocaleCode, a as LocaleConfig, A as AstroContext, b as LocaleInstance } from './types-C3YFqjvG.js';
+import { L as LocaleCode, a as LocaleConfig, A as AstroContext, c as LocaleInstance } from './types-DGnNjMf6.js';
 
 /**
  * Returns locale configuration by code, or all locales if no code is provided.
@@ -25,8 +25,8 @@ declare const Locale: {
      */
     fromURL(url: URL): LocaleCode;
     /**
-     * Generates the URL path of a page in the specified locale.
-     * Strips any existing locale prefix and prepends the specified locale.
+     * Generates the URL path of a page in the specified locale, with the Astro base.
+     * Strips any existing base and locale prefix and prepends the specified locale.
      * The default locale has no prefix when prefixDefaultLocale is false.
      */
     url(locale: LocaleCode, path?: string): string;
