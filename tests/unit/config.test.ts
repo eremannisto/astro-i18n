@@ -87,23 +87,6 @@ describe("Config.validate — defaultLocale", () => {
   })
 })
 
-describe("Config.validate — ignore", () => {
-  it("passes with ignore", () => {
-    expect(() =>
-      Config.validate({
-        locales: [{ code: "en", name: "English", endonym: "English" }],
-        ignore: ["/keystatic"],
-      })
-    ).not.toThrow()
-  })
-
-  it("passes without ignore", () => {
-    expect(() =>
-      Config.validate({ locales: [{ code: "en", name: "English", endonym: "English" }] })
-    ).not.toThrow()
-  })
-})
-
 describe("Config.validate — full config", () => {
   it("passes for a valid config with all fields", () => {
     expect(() =>
@@ -113,7 +96,6 @@ describe("Config.validate — full config", () => {
           { code: "fi", name: "Finnish", endonym: "Suomi" },
         ],
         defaultLocale: "en",
-        ignore: ["/keystatic"],
       })
     ).not.toThrow()
   })
@@ -143,11 +125,9 @@ describe("Config.resolve", () => {
     expect(Config.resolve({ locales, prefixDefaultLocale: false }).prefixDefaultLocale).toBe(false)
   })
 
-  it("always ignores Astro asset paths", () => {
-    expect(Config.resolve({ locales, ignore: ["/keystatic"] }).ignore).toEqual([
-      "/_astro",
-      "/_image",
-      "/keystatic",
-    ])
+  it("removes the trailing slash of the base", () => {
+    expect(Config.resolve({ locales }).base).toBe("")
+    expect(Config.resolve({ locales }, "/docs/").base).toBe("/docs")
+    expect(Config.resolve({ locales }, "/docs").base).toBe("/docs")
   })
 })

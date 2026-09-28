@@ -14,7 +14,7 @@ vi.mock("virtual:astro-i18n/config", () => ({
     ],
     defaultLocale: "en",
     prefixDefaultLocale: true,
-    ignore: ["/_astro"],
+    base: "",
     translations: "./src/translations",
   },
   translations: Mock.translations,
@@ -38,7 +38,7 @@ function config(files: Record<string, string>) {
     locales: [{ code: "en" }, { code: "fi" }],
     defaultLocale: "en",
     prefixDefaultLocale: true,
-    ignore: [],
+    base: "",
     translations: directory,
   }
 }
@@ -62,10 +62,10 @@ describe("Translations.load", () => {
 
 describe("Translations.validate", () => {
   it("warns about keys missing in other locales", () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
-    Translations.validate({ en: { a: "A", b: "B" }, fi: { a: "Ä" } }, "en")
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining('Missing translation key "b"'))
-    warn.mockRestore()
+    const logger = { warn: vi.fn() }
+    Translations.validate({ en: { a: "A", b: "B" }, fi: { a: "Ä" } }, "en", logger as any)
+    expect(logger.warn).toHaveBeenCalledWith('Missing translation key "b" in fi.json')
+    expect(logger.warn).toHaveBeenCalledTimes(1)
   })
 })
 

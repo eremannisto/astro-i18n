@@ -9,7 +9,7 @@ const resolvedConfig = {
   ],
   defaultLocale: "en",
   prefixDefaultLocale: true,
-  ignore: ["/_astro"],
+  base: "",
   translations: "./src/translations",
 }
 
@@ -230,5 +230,50 @@ describe("prefixDefaultLocale: false", () => {
       { href: "https://example.com/fi/about", hreflang: "fi" },
       { href: "https://example.com/about", hreflang: "x-default" },
     ])
+  })
+})
+
+describe("base", () => {
+  beforeEach(() => {
+    vi.resetModules()
+    vi.doMock("virtual:astro-i18n/config", () => ({
+      config: { ...resolvedConfig, base: "/docs" },
+      translations: Mock.translations,
+    }))
+  })
+
+  it("Locale.url adds the base", async () => {
+    const { Locale: L } = await import("../../src/lib/locale")
+    expect(L.url("fi")).toBe("/docs/fi/")
+    expect(L.url("fi", "/about")).toBe("/docs/fi/about")
+  })
+
+  it("Locale.url replaces the locale of a path with the base", async () => {
+    const { Locale: L } = await import("../../src/lib/locale")
+    expect(L.url("fi", "/docs/en/about")).toBe("/docs/fi/about")
+  })
+
+  it("Locale.fromURL reads the locale after the base", async () => {
+    const { Locale: L } = await import("../../src/lib/locale")
+    expect(L.fromURL(new URL("https://example.com/docs/fi/about"))).toBe("fi")
+  })
+
+  it("Locale.hreflang includes the base", async () => {
+    const { Locale: L } = await import("../../src/lib/locale")
+    const result = L.hreflang(new URL("https://example.com/docs/fi/"), "https://example.com")
+    expect(result[0]).toEqual({ href: "https://example.com/docs/en/", hreflang: "en" })
+  })
+})
+
+describe("Locale.switch in the browser", () => {
+  it("logs an error and does nothing for an unknown locale", () => {
+    const assign = vi.fn()
+    vi.stubGlobal("window", { location: { assign, pathname: "/en/" } })
+    const error = vi.spyOn(console, "error").mockImplementation(() => {})
+    Locale.switch("de")
+    expect(error).toHaveBeenCalledWith(expect.stringContaining('unknown locale "de"'))
+    expect(assign).not.toHaveBeenCalled()
+    error.mockRestore()
+    vi.unstubAllGlobals()
   })
 })

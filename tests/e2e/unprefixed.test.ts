@@ -75,3 +75,14 @@ test.describe("hreflang", () => {
     await expect(link("x-default")).not.toHaveAttribute("href", /\/en\/$/)
   })
 })
+
+test.describe("language switcher", () => {
+  test("switches to another locale and back to the default locale", async ({ page }) => {
+    await page.goto("/")
+    await page.getByTestId("switch-fi").click()
+    await expect(page).toHaveURL("/fi/")
+    await page.getByTestId("switch-en").click()
+    await expect(page).toHaveURL("/")
+    await expect(page.getByTestId("title")).toHaveText("Home")
+  })
+})

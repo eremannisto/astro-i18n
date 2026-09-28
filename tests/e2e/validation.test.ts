@@ -76,6 +76,11 @@ test.describe("warnings and messages", () => {
     expect(output).toContain("fi.json")
   })
 
+  test("removed ignore option", async () => {
+    const output = await runAstro(fixture("removed-ignore"))
+    expect(output).toContain('The "ignore" option was removed in v3')
+  })
+
   test("index.astro with a default locale prefix", async () => {
     const output = await runAstro(fixture("custom-index"), "build")
     expect(output).toContain("replaces the locale detection")

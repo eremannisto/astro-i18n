@@ -8,7 +8,7 @@ type Options = {
   rewrite?: (path: string) => Promise<Response>
 }
 
-async function load(prefixDefaultLocale: boolean) {
+async function load(prefixDefaultLocale: boolean, base = "") {
   vi.resetModules()
   vi.doMock("virtual:astro-i18n/config", () => ({
     config: {
@@ -18,7 +18,7 @@ async function load(prefixDefaultLocale: boolean) {
       ],
       defaultLocale: "en",
       prefixDefaultLocale,
-      ignore: ["/_astro", "/keystatic", "/api/uploads/**/*.png"],
+      base,
       translations: undefined,
     },
     translations: {},
@@ -68,19 +68,6 @@ describe("both modes", () => {
       expect(response.status).toBe(404)
       expect(body).toBe("/404")
     }
-  })
-
-  it("passes through plain ignore prefixes and their sub-paths", async () => {
-    const run = await load(true)
-    expect((await run("/_astro/chunk.js")).body).toBe("next")
-    expect((await run("/keystatic")).body).toBe("next")
-    expect((await run("/keystatic/collection/posts")).body).toBe("next")
-  })
-
-  it("passes through paths that match a glob ignore pattern", async () => {
-    const run = await load(true)
-    expect((await run("/api/uploads/nested/image.png")).body).toBe("next")
-    expect((await run("/api/uploads/photo.jpg")).response.status).toBe(302)
   })
 })
 
@@ -166,5 +153,30 @@ describe("prefixDefaultLocale: false", () => {
   it("passes through the second pass after its own rewrite", async () => {
     const run = await load(false)
     expect((await run("/en/about", { rewritten: true })).body).toBe("next")
+  })
+})
+
+describe("base", () => {
+  it("redirects with the base", async () => {
+    const run = await load(true, "/docs")
+    const { response } = await run("/docs/about")
+    expect(response.headers.get("location")).toBe("/docs/en/about")
+  })
+
+  it("passes through locale paths after the base", async () => {
+    const run = await load(true, "/docs")
+    expect((await run("/docs/fi/about")).body).toBe("next")
+  })
+
+  it("rewrites with the base", async () => {
+    const run = await load(false, "/docs")
+    expect((await run("/docs/about")).body).toBe("/docs/en/about")
+  })
+
+  it("renders the 404 page with the base", async () => {
+    const run = await load(false, "/docs")
+    const { response, body } = await run("/docs/en/about")
+    expect(response.status).toBe(404)
+    expect(body).toBe("/docs/404")
   })
 })
