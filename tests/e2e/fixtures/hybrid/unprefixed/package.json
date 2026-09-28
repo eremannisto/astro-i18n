@@ -5,6 +5,6 @@
   "dependencies": {
     "@astrojs/node": "^10.1.4",
     "@mannisto/astro-i18n": "workspace:*",
-    "astro": "^6.1.9"
+    "astro": "^6.4.8"
   }
 }

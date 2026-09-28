@@ -1,5 +1,5 @@
 {
-  "name": "astro-i18n-fixture-static-unprefixed",
+  "name": "astro-i18n-fixture-base-static-prefixed",
   "private": true,
   "type": "module",
   "dependencies": {

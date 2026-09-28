@@ -2,7 +2,15 @@
 import { LocaleCookie, LocaleHreflang } from "@mannisto/astro-i18n/components"
 import { Locale } from "@mannisto/astro-i18n/runtime"
 
-export const getStaticPaths = () => Locale.supported.map((code) => ({ params: { locale: code } }))
+export const getStaticPaths = () => {
+  return Locale.supported.map((code) => {
+    return {
+      params: {
+        locale: code,
+      },
+    }
+  })
+}
 
 const { code, t } = Locale.use(Astro)
 ---
@@ -20,5 +28,20 @@ const { code, t } = Locale.use(Astro)
       <a data-testid="home" href={Locale.url(code, "/")}>{t("nav.home")}</a>
       <a data-testid="about" href={Locale.url(code, "/about")}>{t("nav.about")}</a>
     </nav>
+    {Locale.get().map((locale) => (
+      <button data-testid={`switch-${locale.code}`} data-locale={locale.code}>
+        {locale.phrase ?? locale.endonym ?? locale.code}
+      </button>
+    ))}
+    <script>
+      import { Locale } from "@mannisto/astro-i18n/runtime"
+
+      for (const button of document.querySelectorAll("button[data-locale]")) {
+        button.addEventListener("click", () => {
+          const code = button.getAttribute("data-locale")
+          if (code) Locale.switch(code)
+        })
+      }
+    </script>
   </body>
 </html>

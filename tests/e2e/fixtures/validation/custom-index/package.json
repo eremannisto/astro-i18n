@@ -4,6 +4,6 @@
   "type": "module",
   "dependencies": {
     "@mannisto/astro-i18n": "workspace:*",
-    "astro": "^6.1.9"
+    "astro": "^6.4.8"
   }
 }
