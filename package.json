@@ -7,7 +7,7 @@
   "homepage": "https://github.com/eremannisto/astro-i18n#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/eremannisto/astro-i18n"
+    "url": "git+https://github.com/eremannisto/astro-i18n.git"
   },
   "bugs": {
     "url": "https://github.com/eremannisto/astro-i18n/issues"
@@ -38,8 +38,7 @@
       "default": "./dist/routes/detect.js"
     },
     "./routes/fallback": {
-      "types": "./dist/routes/fallback.d.ts",
-      "default": "./dist/routes/fallback.js"
+      "default": "./src/routes/fallback.astro"
     },
     "./components": {
       "default": "./src/components/index.ts"
@@ -60,7 +59,8 @@
   },
   "files": [
     "dist",
-    "src/components"
+    "src/components",
+    "src/routes/fallback.astro"
   ],
   "scripts": {
     "build": "tsup",
@@ -69,22 +69,21 @@
     "format": "biome format --write .",
     "check": "biome check . && tsc --noEmit",
     "test:unit": "vitest run",
-    "test:e2e": "pnpm build > /dev/null 2>&1 && playwright test",
+    "test:fixtures": "pnpm --filter \"./tests/e2e/fixtures/**\" --filter \"!./tests/e2e/fixtures/validation/**\" exec astro build",
+    "test:e2e": "pnpm build > /dev/null 2>&1 && pnpm test:fixtures && playwright test",
     "test": "pnpm run test:unit && pnpm run test:e2e"
   },
   "peerDependencies": {
-    "astro": "^6.0.0 || ^7.0.0"
+    "astro": "^6.4.6 || ^7.0.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.16",
-    "@playwright/test": "^1.60.0",
-    "@types/node": "^22.19.20",
-    "@types/picomatch": "^4.0.3",
-    "astro": "^6.4.4",
-    "picomatch": "^4.0.4",
+    "@biomejs/biome": "^2.5.14",
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^22.20.4",
+    "astro": "^6.4.8",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.11"
   },
   "packageManager": "pnpm@10.32.1+sha512.a706938f0e89ac1456b6563eab4edf1d1faf3368d1191fc5c59790e96dc918e4456ab2e67d613de1043d2e8c81f87303e6b40d4ffeca9df15ef1ad567348f2be"
 }
