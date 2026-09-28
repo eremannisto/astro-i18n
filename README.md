@@ -44,7 +44,7 @@ export default defineConfig({
         { code: "fi", name: "Finnish", endonym: "Suomi", phrase: "Suomeksi" },
       ],
       defaultLocale: "en",
-      prefixDefaultLocale: true,
+      prefixDefaultLocale: false,
       translations: "./src/translations",
     }),
   ],
@@ -55,7 +55,7 @@ export default defineConfig({
 |---|---|---|
 | `locales` | — | The supported locales. Each locale has a `code` and an optional `name`, `endonym`, `phrase` and `direction` (`"ltr"` or `"rtl"`). |
 | `defaultLocale` | First locale | The locale for visitors with no stored preference. |
-| `prefixDefaultLocale` | `true` | `true`: the default locale uses `/en/about`. `false`: it uses `/about`, and `/en/about` gives a 404. The other locales always have a prefix. |
+| `prefixDefaultLocale` | `false` | `false`: the default locale uses `/about`, and `/en/about` gives a 404. `true`: it uses `/en/about`. The other locales always have a prefix. The default is the same as in Astro's built-in i18n. |
 | `translations` | — | The folder with one JSON file for each locale. Omit it to disable translations. |
 
 ## Pages
@@ -243,7 +243,18 @@ Import the types from the package, for example `import type { LocaleConfig } fro
 
 ## Migrate from v2
 
-Version 3 has three breaking changes.
+Version 3 has four breaking changes.
+
+### Keep the v2 URLs
+
+The default locale has no URL prefix by default: `/about` in place of `/en/about`. To keep the v2 URLs, set `prefixDefaultLocale` to `true`.
+
+```diff
+i18n({
+  locales: [...],
++ prefixDefaultLocale: true,
+})
+```
 
 ### Remove the `response()` call from the 404 page
 
