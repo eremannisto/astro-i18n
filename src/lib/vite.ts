@@ -39,13 +39,20 @@ export function createVitePlugin(
 
     // Vite hook — generates the module source for the resolved ID.
     // Serialises the current config and translations as a JS module.
-    load(id: string) {
-      if (id === RESOLVED_ID) {
+    // The browser gets the locale config only: t() runs on the server.
+    load(id: string, options?: { ssr?: boolean }) {
+      if (id !== RESOLVED_ID) return
+      if (!options?.ssr) {
+        const { translations: _, ...config } = getConfig()
         return `
-          export const config = ${JSON.stringify(getConfig())}
-          export const translations = ${JSON.stringify(getTranslations())}
+          export const config = ${JSON.stringify(config)}
+          export const translations = {}
         `
       }
+      return `
+        export const config = ${JSON.stringify(getConfig())}
+        export const translations = ${JSON.stringify(getTranslations())}
+      `
     },
   }
 }
