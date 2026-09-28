@@ -6,10 +6,9 @@ export default defineConfig({
     runtime: "src/lib/locale.ts",
     middleware: "src/middleware.ts",
     "routes/detect": "src/routes/detect.ts",
-    "routes/fallback": "src/routes/fallback.ts",
   },
   format: ["esm"],
   dts: true,
   clean: true,
-  external: ["astro", "astro/middleware", "vite", "virtual:astro-i18n/config", "picomatch"],
+  external: ["astro", "astro/middleware", "vite", "virtual:astro-i18n/config"],
 })
