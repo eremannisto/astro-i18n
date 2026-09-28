@@ -1,6 +1,6 @@
 import { config, translations } from "virtual:astro-i18n/config"
 
-import { NAME } from "../constants"
+import { COOKIE_AGE, NAME } from "../constants"
 import type {
   AstroContext,
   LocaleCode,
@@ -8,17 +8,24 @@ import type {
   LocaleInstance,
   TranslationValues,
 } from "../types"
+import { Paths } from "./paths"
 
 /**
  * Sets a cookie using the Cookie Store API if available, otherwise falls back to document.cookie.
  */
 function setCookie(name: string, value: string): void {
   if ("cookieStore" in window) {
-    void window.cookieStore.set({ name, value, path: "/", sameSite: "lax" })
+    void window.cookieStore.set({
+      name,
+      value,
+      path: "/",
+      sameSite: "lax",
+      expires: Date.now() + COOKIE_AGE * 1000,
+    })
     return
   }
   // biome-ignore lint/suspicious/noDocumentCookie: Cookie Store API not available
-  document.cookie = `${name}=${value}; path=/; SameSite=Lax`
+  document.cookie = `${name}=${value}; path=/; SameSite=Lax; Max-Age=${COOKIE_AGE}`
 }
 
 /**
@@ -46,7 +53,8 @@ function buildTranslator(code: LocaleCode): LocaleInstance["t"] {
     return (key: string) => {
       throw new Error(
         `${NAME} t("${key}") was called but translations are not configured. ` +
-          `Add a translations path to your i18n config to enable translations.`
+          `Add a translations path to your i18n config to enable translations. ` +
+          `In the browser, t() is not available: pass the translated text as a prop.`
       )
     }
   }
@@ -97,23 +105,25 @@ export const Locale = {
    * Falls back to the default locale if no valid locale prefix is found.
    */
   fromURL(url: URL): LocaleCode {
-    const first = url.pathname.split("/")[1]
+    const first = Paths.strip(url.pathname).split("/")[1]
     const codes = config.locales.map((l: LocaleConfig) => l.code)
     return codes.includes(first) ? first : config.defaultLocale
   },
 
   /**
-   * Generates the URL path of a page in the specified locale.
-   * Strips any existing locale prefix and prepends the specified locale.
+   * Generates the URL path of a page in the specified locale, with the Astro base.
+   * Strips any existing base and locale prefix and prepends the specified locale.
    * The default locale has no prefix when prefixDefaultLocale is false.
    */
   url(locale: LocaleCode, path = "/"): string {
     const codes = config.locales.map((l: LocaleConfig) => l.code)
-    const clean = path.startsWith("/") ? path : `/${path}`
+    const clean = Paths.strip(path.startsWith("/") ? path : `/${path}`)
     const segments = clean.split("/")
     const stripped = codes.includes(segments[1]) ? `/${segments.slice(2).join("/")}` : clean
-    if (locale === config.defaultLocale && !config.prefixDefaultLocale) return stripped
-    return stripped === "/" ? `/${locale}/` : `/${locale}${stripped}`
+    if (locale === config.defaultLocale && !config.prefixDefaultLocale) {
+      return Paths.add(stripped)
+    }
+    return Paths.add(stripped === "/" ? `/${locale}/` : `/${locale}${stripped}`)
   },
 
   /**
@@ -124,6 +134,10 @@ export const Locale = {
   switch(locale: LocaleCode, path?: string): void {
     if (typeof window === "undefined") {
       console.warn(`${NAME} Locale.switch() can only be called in the browser.`)
+      return
+    }
+    if (!Locale.supported.includes(locale)) {
+      console.error(`${NAME} Locale.switch() got an unknown locale "${locale}".`)
       return
     }
     setCookie("locale", locale)

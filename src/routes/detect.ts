@@ -1,6 +1,8 @@
 import { config } from "virtual:astro-i18n/config"
 import type { APIRoute } from "astro"
 
+import { COOKIE_AGE } from "../constants"
+import { Paths } from "../lib/paths"
 import type { LocaleConfig } from "../types"
 
 /**
@@ -19,10 +21,9 @@ export const GET: APIRoute = ({ cookies, redirect }) => {
 
   cookies.set("locale", locale, {
     path: "/",
-    maxAge: 60 * 60 * 24 * 365,
+    maxAge: COOKIE_AGE,
     sameSite: "lax",
-    secure: true,
   })
 
-  return redirect(`/${locale}/`, 302)
+  return redirect(Paths.add(`/${locale}/`), 302)
 }

@@ -4,13 +4,14 @@ import type { I18nConfig, ResolvedI18nConfig } from "../types"
 export const Config = {
   /**
    * Applies defaults to the raw user config and returns a fully resolved config.
+   * The base is the Astro base option, e.g. "/docs/".
    */
-  resolve(config: I18nConfig): ResolvedI18nConfig {
+  resolve(config: I18nConfig, base = "/"): ResolvedI18nConfig {
     return {
       locales: config.locales,
       defaultLocale: config.defaultLocale ?? config.locales[0].code,
       prefixDefaultLocale: config.prefixDefaultLocale ?? true,
-      ignore: ["/_astro", "/_image", ...(config.ignore ?? [])],
+      base: base.replace(/\/+$/, ""),
       translations: config.translations,
     }
   },

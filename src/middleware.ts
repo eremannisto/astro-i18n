@@ -1,24 +1,12 @@
 import { config } from "virtual:astro-i18n/config"
 import type { APIContext, MiddlewareNext } from "astro"
 import { defineMiddleware } from "astro/middleware"
-import pm from "picomatch"
 
 import { FALLBACK_PATTERN } from "./constants"
+import { Paths } from "./lib/paths"
 import type { LocaleConfig } from "./types"
 
 const codes = config.locales.map((l: LocaleConfig) => l.code)
-
-/**
- * Normalizes an ignore pattern so plain path prefixes match both the exact
- * path and all sub-paths. "/keystatic" becomes ["/keystatic", "/keystatic/**"].
- * Patterns that already contain wildcards are left as-is.
- */
-function expandPattern(pattern: string): string[] {
-  if (pattern.includes("*")) return [pattern]
-  return [pattern, `${pattern}/**`]
-}
-
-const isIgnored = pm(config.ignore.flatMap(expandPattern))
 
 /**
  * Returns true for pages outside the [locale] folder, e.g. /privacy or /api/data.
@@ -35,17 +23,17 @@ export const onRequest = defineMiddleware((context, next) => {
   // The second pass after a rewrite from this middleware
   if (context.locals.i18nRewrite) return next()
 
-  const { pathname } = context.url
-  if (isIgnored(pathname) || isRootRoute(context.routePattern)) return next()
+  const path = Paths.strip(context.url.pathname)
+  if (isRootRoute(context.routePattern)) return next()
 
-  const locale = pathname.split("/")[1]
+  const locale = path.split("/")[1]
 
   if (config.prefixDefaultLocale) {
-    return codes.includes(locale) ? render(context, next) : redirect(context)
+    return codes.includes(locale) ? render(context, next) : redirect(context, path)
   }
 
   if (locale === config.defaultLocale) return notFound(context)
-  return codes.includes(locale) ? render(context, next) : rewrite(context)
+  return codes.includes(locale) ? render(context, next) : rewrite(context, path)
 })
 
 /**
@@ -59,20 +47,20 @@ function render(context: APIContext, next: MiddlewareNext) {
  * prefixDefaultLocale: true. Sends a path without a locale prefix to the
  * stored cookie locale or to the default locale: /about becomes /en/about.
  */
-function redirect(context: APIContext) {
+function redirect(context: APIContext, path: string) {
   const stored = context.cookies.get("locale")?.value
   const locale = stored && codes.includes(stored) ? stored : config.defaultLocale
-  return context.redirect(`/${locale}${context.url.pathname}`, 302)
+  return context.redirect(Paths.add(`/${locale}${path}`), 302)
 }
 
 /**
  * prefixDefaultLocale: false. Renders the default locale page for a path
  * without a locale prefix: /about shows /en/about.
  */
-async function rewrite(context: APIContext) {
+async function rewrite(context: APIContext, path: string) {
   context.locals.i18nRewrite = true
-  const path = `/${config.defaultLocale}${context.url.pathname}`
-  const response = await context.rewrite(path).catch(() => null)
+  const target = Paths.add(`/${config.defaultLocale}${path}`)
+  const response = await context.rewrite(target).catch(() => null)
   if (!response || response.status === 404) return notFound(context)
   return response
 }
@@ -83,7 +71,7 @@ async function rewrite(context: APIContext) {
  */
 async function notFound(context: APIContext) {
   context.locals.i18nRewrite = true
-  const response = await context.rewrite("/404").catch(() => null)
+  const response = await context.rewrite(Paths.add("/404")).catch(() => null)
   if (!response || response.status >= 500) return new Response(null, { status: 404 })
   return new Response(response.body, { status: 404, headers: response.headers })
 }

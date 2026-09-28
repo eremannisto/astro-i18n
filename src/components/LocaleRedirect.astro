@@ -4,12 +4,13 @@ import { Locale } from "@mannisto/astro-i18n/runtime"
 
 const supported = Locale.supported
 const defaultLocale = Locale.defaultLocale
+const base = config.base
 ---
 
 {
   config.prefixDefaultLocale && (
-    <script is:inline define:vars={{ supported, defaultLocale }}>
-      const pathname = window.location.pathname
+    <script is:inline define:vars={{ supported, defaultLocale, base }}>
+      const pathname = window.location.pathname.slice(base.length) || "/"
       const firstSegment = pathname.split("/").filter(Boolean)[0]
 
       if (!supported.includes(firstSegment)) {
@@ -18,7 +19,7 @@ const defaultLocale = Locale.defaultLocale
           .find((r) => r.startsWith("locale="))
           ?.split("=")[1]
         const locale = stored && supported.includes(stored) ? stored : defaultLocale
-        window.location.replace(`/${locale}${pathname}`)
+        window.location.replace(`${base}/${locale}${pathname}`)
       }
     </script>
   )

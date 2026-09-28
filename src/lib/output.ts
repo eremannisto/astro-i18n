@@ -57,10 +57,11 @@ export const Output = {
     <meta charset="UTF-8" />
     <script>
       const supported = ${JSON.stringify(supported)};
-      const defaultLocale = "${config.defaultLocale}";
+      const base = ${JSON.stringify(config.base)};
+      const defaultLocale = ${JSON.stringify(config.defaultLocale)};
       const stored = document.cookie.split("; ").find(r => r.startsWith("locale="))?.split("=")[1];
       const locale = (stored && supported.includes(stored)) ? stored : defaultLocale;
-      window.location.replace("/" + locale + "/");
+      window.location.replace(base + "/" + locale + "/");
     </script>
   </head>
   <body></body>

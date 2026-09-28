@@ -1,6 +1,6 @@
 import fs from "node:fs"
 import path from "node:path"
-import type { AstroIntegration } from "astro"
+import type { AstroIntegration, AstroIntegrationLogger } from "astro"
 
 import { FALLBACK_PATTERN, NAME } from "./constants"
 import { Config } from "./lib/config"
@@ -8,6 +8,15 @@ import { Output } from "./lib/output"
 import { Translations } from "./lib/translations"
 import { createVitePlugin, RESOLVED_ID } from "./lib/vite"
 import type { I18nConfig, ResolvedI18nConfig } from "./types"
+
+export type {
+  I18nConfig,
+  LocaleCode,
+  LocaleConfig,
+  LocaleDirection,
+  LocaleInstance,
+  TranslationValues,
+} from "./types"
 
 /**
  * Watches the translations directory for JSON file changes during dev.
@@ -17,7 +26,7 @@ import type { I18nConfig, ResolvedI18nConfig } from "./types"
 function watchTranslations(
   server: Parameters<NonNullable<AstroIntegration["hooks"]["astro:server:setup"]>>[0]["server"],
   resolved: ResolvedI18nConfig,
-  logger: Parameters<NonNullable<AstroIntegration["hooks"]["astro:server:setup"]>>[0]["logger"],
+  logger: AstroIntegrationLogger,
   onReload: (data: Record<string, Record<string, string>>) => void
 ): void {
   if (!resolved.translations) return
@@ -32,7 +41,7 @@ function watchTranslations(
 
     try {
       const data = Translations.load(resolved)
-      Translations.validate(data, resolved.defaultLocale)
+      Translations.validate(data, resolved.defaultLocale, logger)
       onReload(data)
     } catch (e) {
       logger.error(`Failed to reload translations: ${(e as Error).message}`)
@@ -77,7 +86,7 @@ export default function i18n(config: I18nConfig): AstroIntegration {
         }
 
         Config.validate(config)
-        resolved = Config.resolve(config)
+        resolved = Config.resolve(config, astroConfig.base)
         hasAdapter = Boolean(astroConfig.adapter)
 
         // A user-owned root page replaces the locale detection at /.
@@ -94,8 +103,11 @@ export default function i18n(config: I18nConfig): AstroIntegration {
         }
         detectRoot = resolved.prefixDefaultLocale && !hasIndexPage
 
-        if (config.ignore && !hasAdapter) {
-          logger.warn('"ignore" has no effect in static builds — it requires a server adapter.')
+        if ("ignore" in config) {
+          logger.warn(
+            'The "ignore" option was removed in v3. The middleware now skips all pages ' +
+              "outside the [locale] folder. Remove the option from your config."
+          )
         }
 
         // Register the virtual module so locale config is importable anywhere
@@ -140,11 +152,11 @@ export default function i18n(config: I18nConfig): AstroIntegration {
        * Runs after the final config is resolved. Loads and validates
        * translation files if a translations path is configured.
        */
-      "astro:config:done": ({ config: astroConfig }) => {
+      "astro:config:done": ({ config: astroConfig, logger }) => {
         clientDir = astroConfig.build.client
         if (!resolved.translations) return
         translationData = Translations.load(resolved)
-        Translations.validate(translationData, resolved.defaultLocale)
+        Translations.validate(translationData, resolved.defaultLocale, logger)
       },
 
       /**

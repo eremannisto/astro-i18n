@@ -42,15 +42,6 @@ export type I18nConfig = {
   prefixDefaultLocale?: boolean
 
   /**
-   * URL path prefixes that the middleware does not change.
-   * Only applies when a server adapter is configured.
-   * Always includes "/_astro" and "/_image" internally.
-   *
-   * @example ["/keystatic", "/api"]
-   */
-  ignore?: string[]
-
-  /**
    * Path to the translations directory, relative to the project root.
    * Each locale must have a JSON file, e.g. en.json, fi.json.
    * If not set, translations are disabled.
@@ -91,6 +82,9 @@ export type ResolvedI18nConfig = {
   locales: LocaleConfig[]
   defaultLocale: LocaleCode
   prefixDefaultLocale: boolean
-  ignore: string[]
+  /**
+   * The Astro base without a trailing slash, e.g. "/docs". Empty for the root.
+   */
+  base: string
   translations: string | undefined
 }
