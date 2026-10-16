@@ -11,14 +11,15 @@ import path2 from "path";
 var Config = {
   /**
    * Applies defaults to the raw user config and returns a fully resolved config.
-   * The base is the Astro base option, e.g. "/docs/".
+   * The base and the trailing slash are the Astro options, e.g. "/docs/" and "always".
    */
-  resolve(config, base = "/") {
+  resolve(config, base = "/", trailingSlash = "ignore") {
     return {
       locales: config.locales,
       defaultLocale: config.defaultLocale ?? config.locales[0].code,
       prefixDefaultLocale: config.prefixDefaultLocale ?? false,
       base: base.replace(/\/+$/, ""),
+      trailingSlash,
       translations: config.translations
     };
   },
@@ -232,7 +233,7 @@ function i18n(config) {
           );
         }
         Config.validate(config);
-        resolved = Config.resolve(config, astroConfig.base);
+        resolved = Config.resolve(config, astroConfig.base, astroConfig.trailingSlash);
         hasAdapter = Boolean(astroConfig.adapter);
         const hasIndexPage = fs3.existsSync(new URL("./src/pages/index.astro", astroConfig.root));
         if (hasIndexPage && !resolved.prefixDefaultLocale) {

@@ -1,6 +1,7 @@
 import {
-  Paths
-} from "../chunk-4N5FPK3J.js";
+  Locale
+} from "../chunk-HW6PW4NN.js";
+import "../chunk-XSJUJN77.js";
 import {
   COOKIE_AGE
 } from "../chunk-M3HKFVOR.js";
@@ -17,7 +18,7 @@ var GET = ({ cookies, redirect }) => {
     maxAge: COOKIE_AGE,
     sameSite: "lax"
   });
-  return redirect(Paths.add(`/${locale}/`), 302);
+  return redirect(Locale.url(locale), 302);
 };
 export {
   GET,

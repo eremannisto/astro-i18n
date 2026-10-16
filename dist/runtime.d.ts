@@ -28,6 +28,7 @@ declare const Locale: {
      * Generates the URL path of a page in the specified locale, with the Astro base.
      * Strips any existing base and locale prefix and prepends the specified locale.
      * The default locale has no prefix when prefixDefaultLocale is false.
+     * The slash at the end follows the Astro trailingSlash option.
      */
     url(locale: LocaleCode, path?: string): string;
     /**
