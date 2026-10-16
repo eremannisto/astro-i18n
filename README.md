@@ -6,7 +6,7 @@
 ![npm version](https://img.shields.io/npm/v/@mannisto/astro-i18n?style=for-the-badge)
 ![license](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
 
-Locale routing, locale detection and translations for Astro. An alternative to Astro's built-in i18n for static, hybrid and server sites.
+Locale routing, locale detection and translations for Astro. An alternative to the native i18n of Astro, for static, hybrid and server sites.
 
 - [Install](#install)
 - [Configuration](#configuration)
@@ -40,8 +40,17 @@ export default defineConfig({
   integrations: [
     i18n({
       locales: [
-        { code: "en", name: "English", endonym: "English" },
-        { code: "fi", name: "Finnish", endonym: "Suomi", phrase: "Suomeksi" },
+        {
+          code: "en",
+          name: "English",
+          endonym: "English",
+        },
+        {
+          code: "fi",
+          name: "Finnish",
+          endonym: "Suomi",
+          phrase: "Suomeksi",
+        },
       ],
       defaultLocale: "en",
       prefixDefaultLocale: false,
@@ -55,8 +64,8 @@ export default defineConfig({
 |---|---|---|
 | `locales` | — | The supported locales. Each locale has a `code` and an optional `name`, `endonym`, `phrase` and `direction` (`"ltr"` or `"rtl"`). |
 | `defaultLocale` | First locale | The locale for visitors with no stored preference. |
-| `prefixDefaultLocale` | `false` | `false`: the default locale uses `/about`, and `/en/about` gives a 404. `true`: it uses `/en/about`. The other locales always have a prefix. The default is the same as in Astro's built-in i18n. |
-| `translations` | — | The folder with one JSON file for each locale. Omit it to disable translations. |
+| `prefixDefaultLocale` | `false` | `false`: the default locale uses `/about`, and `/en/about` gives a 404. `true`: it uses `/en/about`. The other locales always have a prefix. The default is the same as in the native i18n of Astro. |
+| `translations` | — | The folder with one JSON file for each locale. Without this option, there are no translations. |
 
 ## Pages
 
@@ -168,9 +177,9 @@ const { t } = Locale.use(Astro)
 <h1>{t("greeting", { user: "World" })}</h1>
 ```
 
-If a key is missing, `t` returns the key name and logs an error. If a placeholder has no value, it stays in the text and `t` logs an error. At startup, the integration shows a warning for each key that a locale does not have.
+If a locale does not have a key, `t` returns the key name and logs an error. If a placeholder has no value, it stays in the text and `t` logs an error. At startup, the integration shows a warning for each key that a locale does not have.
 
-For React, Vue and other frameworks, pass the translated text as a prop. `t` works only on the server.
+For React, Vue and other frameworks, give the translated text as a prop. `t` works only on the server.
 
 > ⚠ `t` does not escape the values. Astro escapes text in templates, but not with `set:html`. Do not use `set:html` with values from visitors.
 
@@ -183,9 +192,15 @@ Use `Locale.get()` and `Locale.switch()` to make a language switcher.
 import { Locale } from "@mannisto/astro-i18n/runtime"
 ---
 
-{Locale.get().map((locale) => (
-  <button data-locale={locale.code}>{locale.phrase ?? locale.endonym ?? locale.code}</button>
-))}
+{
+  Locale.get().map((locale) => {
+    return (
+      <button data-locale={locale.code}>
+        {locale.phrase ?? locale.endonym ?? locale.code}
+      </button>
+    )
+  })
+}
 
 <script>
   import { Locale } from "@mannisto/astro-i18n/runtime"
@@ -227,6 +242,7 @@ Import the types from the package, for example `import type { LocaleConfig } fro
 - **Locale detection.** With `prefixDefaultLocale: true`, a URL without a locale prefix redirects to the locale that the visitor used last. A new visitor goes to the default locale.
 - **Custom root page.** With `prefixDefaultLocale: true`, add `src/pages/index.astro` to show your own page at `/`, for example a language selector. With `false`, this file is not allowed, because `/` is the default locale home page.
 - **Links.** Use `Locale.url()` to make links. With `prefixDefaultLocale: false`, `Astro.url` still contains the default locale prefix.
+- **Trailing slash.** `Locale.url()` and the hreflang links follow the `trailingSlash` option of Astro. With `"ignore"`, the slash of the path that you give stays.
 - **Sitemap without a prefix.** With `prefixDefaultLocale: false`, `@astrojs/sitemap` lists the default locale pages with their prefix. Remove the prefix with the `serialize` option. For example, with `en` as the default locale:
 
   ```typescript
