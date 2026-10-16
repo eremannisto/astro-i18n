@@ -4,14 +4,19 @@ import type { I18nConfig, ResolvedI18nConfig } from "../types"
 export const Config = {
   /**
    * Applies defaults to the raw user config and returns a fully resolved config.
-   * The base is the Astro base option, e.g. "/docs/".
+   * The base and the trailing slash are the Astro options, e.g. "/docs/" and "always".
    */
-  resolve(config: I18nConfig, base = "/"): ResolvedI18nConfig {
+  resolve(
+    config: I18nConfig,
+    base = "/",
+    trailingSlash: ResolvedI18nConfig["trailingSlash"] = "ignore"
+  ): ResolvedI18nConfig {
     return {
       locales: config.locales,
       defaultLocale: config.defaultLocale ?? config.locales[0].code,
       prefixDefaultLocale: config.prefixDefaultLocale ?? false,
       base: base.replace(/\/+$/, ""),
+      trailingSlash,
       translations: config.translations,
     }
   },

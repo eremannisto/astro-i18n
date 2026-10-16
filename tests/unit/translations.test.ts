@@ -15,6 +15,7 @@ vi.mock("virtual:astro-i18n/config", () => ({
     defaultLocale: "en",
     prefixDefaultLocale: true,
     base: "",
+    trailingSlash: "ignore" as const,
     translations: "./src/translations",
   },
   translations: Mock.translations,
@@ -39,6 +40,7 @@ function config(files: Record<string, string>) {
     defaultLocale: "en",
     prefixDefaultLocale: true,
     base: "",
+    trailingSlash: "ignore" as const,
     translations: directory,
   }
 }

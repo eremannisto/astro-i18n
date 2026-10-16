@@ -86,7 +86,7 @@ export default function i18n(config: I18nConfig): AstroIntegration {
         }
 
         Config.validate(config)
-        resolved = Config.resolve(config, astroConfig.base)
+        resolved = Config.resolve(config, astroConfig.base, astroConfig.trailingSlash)
         hasAdapter = Boolean(astroConfig.adapter)
 
         // A user-owned root page replaces the locale detection at /.

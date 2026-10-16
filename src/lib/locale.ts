@@ -114,6 +114,7 @@ export const Locale = {
    * Generates the URL path of a page in the specified locale, with the Astro base.
    * Strips any existing base and locale prefix and prepends the specified locale.
    * The default locale has no prefix when prefixDefaultLocale is false.
+   * The slash at the end follows the Astro trailingSlash option.
    */
   url(locale: LocaleCode, path = "/"): string {
     const codes = config.locales.map((l: LocaleConfig) => l.code)
@@ -121,9 +122,9 @@ export const Locale = {
     const segments = clean.split("/")
     const stripped = codes.includes(segments[1]) ? `/${segments.slice(2).join("/")}` : clean
     if (locale === config.defaultLocale && !config.prefixDefaultLocale) {
-      return Paths.add(stripped)
+      return Paths.slash(Paths.add(stripped))
     }
-    return Paths.add(stripped === "/" ? `/${locale}/` : `/${locale}${stripped}`)
+    return Paths.slash(Paths.add(stripped === "/" ? `/${locale}/` : `/${locale}${stripped}`))
   },
 
   /**

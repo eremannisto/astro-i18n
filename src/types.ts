@@ -86,5 +86,9 @@ export type ResolvedI18nConfig = {
    * The Astro base without a trailing slash, e.g. "/docs". Empty for the root.
    */
   base: string
+  /**
+   * The Astro trailingSlash option: "always", "never" or "ignore".
+   */
+  trailingSlash: "always" | "never" | "ignore"
   translations: string | undefined
 }

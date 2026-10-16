@@ -277,3 +277,70 @@ describe("Locale.switch in the browser", () => {
     vi.unstubAllGlobals()
   })
 })
+
+describe("trailingSlash: always", () => {
+  beforeEach(() => {
+    vi.resetModules()
+    vi.doMock("virtual:astro-i18n/config", () => ({
+      config: { ...resolvedConfig, prefixDefaultLocale: false, trailingSlash: "always" },
+      translations: Mock.translations,
+    }))
+  })
+
+  it("Locale.url adds the slash", async () => {
+    const { Locale: L } = await import("../../src/lib/locale")
+    expect(L.url("fi", "/about")).toBe("/fi/about/")
+    expect(L.url("fi", "/about/")).toBe("/fi/about/")
+    expect(L.url("en", "/fi/about")).toBe("/about/")
+    expect(L.url("fi")).toBe("/fi/")
+    expect(L.url("en")).toBe("/")
+  })
+
+  it("Locale.url keeps a file without the slash", async () => {
+    const { Locale: L } = await import("../../src/lib/locale")
+    expect(L.url("fi", "/rss.xml")).toBe("/fi/rss.xml")
+  })
+
+  it("Locale.hreflang adds the slash", async () => {
+    const { Locale: L } = await import("../../src/lib/locale")
+    const result = L.hreflang(new URL("https://example.com/about"), "https://example.com")
+    expect(result).toEqual([
+      { href: "https://example.com/about/", hreflang: "en" },
+      { href: "https://example.com/fi/about/", hreflang: "fi" },
+      { href: "https://example.com/about/", hreflang: "x-default" },
+    ])
+  })
+})
+
+describe("trailingSlash: never", () => {
+  beforeEach(() => {
+    vi.resetModules()
+    vi.doMock("virtual:astro-i18n/config", () => ({
+      config: { ...resolvedConfig, prefixDefaultLocale: false, trailingSlash: "never" },
+      translations: Mock.translations,
+    }))
+  })
+
+  it("Locale.url removes the slash, also from the locale root", async () => {
+    const { Locale: L } = await import("../../src/lib/locale")
+    expect(L.url("fi", "/about/")).toBe("/fi/about")
+    expect(L.url("fi")).toBe("/fi")
+    expect(L.url("en", "/fi/")).toBe("/")
+  })
+
+  it("Locale.url removes the slash after the base", async () => {
+    vi.resetModules()
+    vi.doMock("virtual:astro-i18n/config", () => ({
+      config: {
+        ...resolvedConfig,
+        prefixDefaultLocale: false,
+        trailingSlash: "never",
+        base: "/docs",
+      },
+      translations: Mock.translations,
+    }))
+    const { Locale: L } = await import("../../src/lib/locale")
+    expect(L.url("en")).toBe("/docs")
+    expect(L.url("fi")).toBe("/docs/fi")
+  })
+})

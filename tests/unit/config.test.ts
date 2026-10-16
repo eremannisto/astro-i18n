@@ -130,4 +130,9 @@ describe("Config.resolve", () => {
     expect(Config.resolve({ locales }, "/docs/").base).toBe("/docs")
     expect(Config.resolve({ locales }, "/docs").base).toBe("/docs")
   })
+
+  it("uses the trailingSlash of Astro, or ignore by default", () => {
+    expect(Config.resolve({ locales }).trailingSlash).toBe("ignore")
+    expect(Config.resolve({ locales }, "/", "never").trailingSlash).toBe("never")
+  })
 })

@@ -2,7 +2,7 @@ import { config } from "virtual:astro-i18n/config"
 import type { APIRoute } from "astro"
 
 import { COOKIE_AGE } from "../constants"
-import { Paths } from "../lib/paths"
+import { Locale } from "../lib/locale"
 import type { LocaleConfig } from "../types"
 
 /**
@@ -25,5 +25,5 @@ export const GET: APIRoute = ({ cookies, redirect }) => {
     sameSite: "lax",
   })
 
-  return redirect(Paths.add(`/${locale}/`), 302)
+  return redirect(Locale.url(locale), 302)
 }
