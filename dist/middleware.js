@@ -1,6 +1,6 @@
 import {
   Paths
-} from "./chunk-XSJUJN77.js";
+} from "./chunk-HZWZ5KVJ.js";
 import {
   FALLBACK_PATTERN
 } from "./chunk-M3HKFVOR.js";

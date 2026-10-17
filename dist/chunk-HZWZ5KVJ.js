@@ -29,7 +29,9 @@ var Paths = {
     if (trailingSlash === "always") {
       return path.endsWith("/") ? path : `${path}/`;
     }
-    return path.replace(/\/+$/, "") || "/";
+    let end = path.length;
+    while (end > 1 && path[end - 1] === "/") end--;
+    return path.slice(0, end);
   }
 };
 
