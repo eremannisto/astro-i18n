@@ -8,19 +8,6 @@
 
 Locale routing, locale detection and translations for Astro. An alternative to the native i18n of Astro, for static, hybrid and server sites.
 
-- [Install](#install)
-- [Configuration](#configuration)
-- [Pages](#pages)
-- [Layout](#layout)
-- [404 page](#404-page)
-- [Translations](#translations)
-- [Language switcher](#language-switcher)
-- [API](#api)
-- [Good to know](#good-to-know)
-- [Migrate from v2](#migrate-from-v2)
-- [Contributing](#contributing)
-- [License](#license)
-
 ## Install
 
 ```bash
