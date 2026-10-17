@@ -35,17 +35,15 @@ export type I18nConfig = {
   defaultLocale?: LocaleCode
 
   /**
-   * URL path prefixes that should bypass the middleware.
-   * Only applies when a server adapter is configured.
-   * Always includes "/_astro" internally.
-   *
-   * @example ["/keystatic", "/api"]
+   * When true, the default locale uses a prefix like the other locales: /en/about.
+   * When false, the default locale has no prefix: /about.
+   * Defaults to false, the same as in Astro's built-in i18n.
    */
-  ignore?: string[]
+  prefixDefaultLocale?: boolean
 
   /**
    * Path to the translations directory, relative to the project root.
-   * Each locale should have a corresponding JSON file, e.g. en.json, fi.json.
+   * Each locale must have a JSON file, e.g. en.json, fi.json.
    * If not set, translations are disabled.
    *
    * @example "./src/translations"
@@ -58,9 +56,12 @@ export type I18nConfig = {
  */
 export type AstroContext = {
   url: URL
-  cookies: { get(name: string): { value: string } | undefined }
-  redirect(path: string, status?: number): Response
 }
+
+/**
+ * Values for the {{name}} placeholders in a translation, e.g. { user: "World" }
+ */
+export type TranslationValues = Record<string, string | number>
 
 /**
  * The locale instance returned by Locale.use()
@@ -71,8 +72,7 @@ export type LocaleInstance = {
   endonym: string | undefined
   phrase: string | undefined
   direction: LocaleDirection
-  t: (key: string) => string
-  response(): Response | null
+  t: (key: string, values?: TranslationValues) => string
 }
 
 /**
@@ -81,6 +81,14 @@ export type LocaleInstance = {
 export type ResolvedI18nConfig = {
   locales: LocaleConfig[]
   defaultLocale: LocaleCode
-  ignore: string[]
+  prefixDefaultLocale: boolean
+  /**
+   * The Astro base without a trailing slash, e.g. "/docs". Empty for the root.
+   */
+  base: string
+  /**
+   * The Astro trailingSlash option: "always", "never" or "ignore".
+   */
+  trailingSlash: "always" | "never" | "ignore"
   translations: string | undefined
 }

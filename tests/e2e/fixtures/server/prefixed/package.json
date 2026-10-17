@@ -1,0 +1,10 @@
+{
+  "name": "astro-i18n-fixture-server-prefixed",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@astrojs/node": "^11.1.8",
+    "@mannisto/astro-i18n": "workspace:*",
+    "astro": "^7.4.0"
+  }
+}

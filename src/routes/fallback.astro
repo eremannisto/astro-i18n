@@ -1,0 +1,12 @@
+---
+/**
+ * Injected as an on-demand catch-all route when a server adapter is configured.
+ *
+ * Without this route, a path such as `/about` matches only prerendered routes,
+ * and the middleware does not run for it in production. This route is a page,
+ * not an endpoint: Astro shows the 404 page only for an empty 404 from a page.
+ */
+export const prerender = false
+
+return new Response(null, { status: 404 })
+---

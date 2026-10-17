@@ -1,4 +1,5 @@
 import fs from "node:fs"
+import type { AstroIntegrationLogger } from "astro"
 
 import { NAME } from "../constants"
 import type { ResolvedI18nConfig } from "../types"
@@ -13,22 +14,30 @@ export const Translations = {
     for (const locale of config.locales) {
       const filePath = `${config.translations}/${locale.code}.json`
       if (!fs.existsSync(filePath)) throw new Error(`${NAME} Missing translation file: ${filePath}`)
-      data[locale.code] = JSON.parse(fs.readFileSync(filePath, "utf-8"))
+      try {
+        data[locale.code] = JSON.parse(fs.readFileSync(filePath, "utf-8"))
+      } catch (e) {
+        throw new Error(`${NAME} Invalid JSON in ${filePath}: ${(e as Error).message}`)
+      }
     }
     return data
   },
 
   /**
    * Warns about translation keys present in the default locale but missing in other locales.
-   * Does not throw — missing keys are allowed to support incremental translation workflows.
+   * Does not throw — t() returns the key name for a missing key.
    */
-  validate(data: Record<string, Record<string, string>>, defaultLocale: string): void {
+  validate(
+    data: Record<string, Record<string, string>>,
+    defaultLocale: string,
+    logger: AstroIntegrationLogger
+  ): void {
     const defaultKeys = new Set(Object.keys(data[defaultLocale]))
     for (const [code, record] of Object.entries(data)) {
       if (code === defaultLocale) continue
       const keys = new Set(Object.keys(record))
       for (const key of defaultKeys) {
-        if (!keys.has(key)) console.warn(`${NAME} Missing translation key "${key}" in ${code}.json`)
+        if (!keys.has(key)) logger.warn(`Missing translation key "${key}" in ${code}.json`)
       }
     }
   },

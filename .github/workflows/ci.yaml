@@ -15,9 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
-        with:
-          version: latest
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -31,9 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
-        with:
-          version: latest
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -42,18 +38,22 @@ jobs:
       - run: pnpm test:unit
 
   test-e2e:
-    name: E2E Tests
+    name: E2E Tests (Astro ${{ matrix.astro }})
     needs: check
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        astro: [6, 7]
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
-        with:
-          version: latest
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
       - run: pnpm install
+      - if: matrix.astro == 6
+        run: pnpm -r update astro@^6.4.8 @astrojs/node@^10.1.4
       - run: pnpm exec playwright install --with-deps
       - run: pnpm test:e2e
