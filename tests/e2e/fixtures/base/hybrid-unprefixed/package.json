@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@astrojs/node": "^10.1.4",
+    "@astrojs/node": "^11.1.8",
     "@mannisto/astro-i18n": "workspace:*",
-    "astro": "^6.4.8"
+    "astro": "^7.4.0"
   }
 }

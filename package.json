@@ -80,7 +80,7 @@
     "@biomejs/biome": "^2.5.14",
     "@playwright/test": "^1.63.0",
     "@types/node": "^22.20.4",
-    "astro": "^6.4.8",
+    "astro": "^7.4.0",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
     "vitest": "^4.1.11"

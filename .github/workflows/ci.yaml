@@ -53,7 +53,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install
-      - if: matrix.astro == 7
-        run: pnpm -r update astro@^7.3.5 @astrojs/node@^11.1.6
+      - if: matrix.astro == 6
+        run: pnpm -r update astro@^6.4.8 @astrojs/node@^10.1.4
       - run: pnpm exec playwright install --with-deps
       - run: pnpm test:e2e
