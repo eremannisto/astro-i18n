@@ -32,6 +32,9 @@ export const Paths = {
     if (trailingSlash === "always") {
       return path.endsWith("/") ? path : `${path}/`
     }
-    return path.replace(/\/+$/, "") || "/"
+    // A loop and not a regular expression: /\/+$/ is slow for a path with many slashes
+    let end = path.length
+    while (end > 1 && path[end - 1] === "/") end--
+    return path.slice(0, end)
   },
 }

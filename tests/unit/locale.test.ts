@@ -344,3 +344,19 @@ describe("trailingSlash: never", () => {
     expect(L.url("fi")).toBe("/docs/fi")
   })
 })
+
+describe("trailingSlash: never with many slashes", () => {
+  beforeEach(() => {
+    vi.resetModules()
+    vi.doMock("virtual:astro-i18n/config", () => ({
+      config: { ...resolvedConfig, prefixDefaultLocale: false, trailingSlash: "never" },
+      translations: Mock.translations,
+    }))
+  })
+
+  it("Locale.url removes all slashes at the end, and keeps the root", async () => {
+    const { Locale: L } = await import("../../src/lib/locale")
+    expect(L.url("fi", "/about///")).toBe("/fi/about")
+    expect(L.url("en", "///")).toBe("/")
+  })
+})
