@@ -18,8 +18,8 @@ importers:
         specifier: ^22.20.4
         version: 22.20.4
       astro:
-        specifier: ^7.4.0
-        version: 7.4.0(@types/node@22.20.4)(esbuild@0.27.7)(yaml@2.9.1)
+        specifier: ^7.4.2
+        version: 7.4.2(@types/node@22.20.4)(esbuild@0.27.7)(yaml@2.9.1)
       tsup:
         specifier: ^8.5.1
         version: 8.5.1(postcss@8.5.30)(typescript@5.9.3)(yaml@2.9.1)
@@ -27,32 +27,32 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
       vitest:
-        specifier: ^4.1.11
-        version: 4.1.11(@types/node@22.20.4)(vite@8.3.4(@types/node@22.20.4)(esbuild@0.27.7)(yaml@2.9.1))
+        specifier: ^4.1.12
+        version: 4.1.12(@types/node@22.20.4)(vite@8.3.4(@types/node@22.20.4)(esbuild@0.27.7)(yaml@2.9.1))
 
   tests/e2e/fixtures/base/hybrid-unprefixed:
     dependencies:
       '@astrojs/node':
         specifier: ^11.1.8
-        version: 11.1.8(astro@7.4.0(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1))
+        version: 11.1.8(astro@7.4.2(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1))
       '@mannisto/astro-i18n':
         specifier: workspace:*
         version: link:../../../../..
       astro:
-        specifier: ^7.4.0
-        version: 7.4.0(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
+        specifier: ^7.4.2
+        version: 7.4.2(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
 
   tests/e2e/fixtures/base/server-prefixed:
     dependencies:
       '@astrojs/node':
         specifier: ^11.1.8
-        version: 11.1.8(astro@7.4.0(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1))
+        version: 11.1.8(astro@7.4.2(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1))
       '@mannisto/astro-i18n':
         specifier: workspace:*
         version: link:../../../../..
       astro:
-        specifier: ^7.4.0
-        version: 7.4.0(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
+        specifier: ^7.4.2
+        version: 7.4.2(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
 
   tests/e2e/fixtures/base/static-prefixed:
     dependencies:
@@ -60,56 +60,56 @@ importers:
         specifier: workspace:*
         version: link:../../../../..
       astro:
-        specifier: ^7.4.0
-        version: 7.4.0(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
+        specifier: ^7.4.2
+        version: 7.4.2(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
 
   tests/e2e/fixtures/hybrid/prefixed:
     dependencies:
       '@astrojs/node':
         specifier: ^11.1.8
-        version: 11.1.8(astro@7.4.0(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1))
+        version: 11.1.8(astro@7.4.2(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1))
       '@mannisto/astro-i18n':
         specifier: workspace:*
         version: link:../../../../..
       astro:
-        specifier: ^7.4.0
-        version: 7.4.0(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
+        specifier: ^7.4.2
+        version: 7.4.2(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
 
   tests/e2e/fixtures/hybrid/unprefixed:
     dependencies:
       '@astrojs/node':
         specifier: ^11.1.8
-        version: 11.1.8(astro@7.4.0(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1))
+        version: 11.1.8(astro@7.4.2(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1))
       '@mannisto/astro-i18n':
         specifier: workspace:*
         version: link:../../../../..
       astro:
-        specifier: ^7.4.0
-        version: 7.4.0(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
+        specifier: ^7.4.2
+        version: 7.4.2(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
 
   tests/e2e/fixtures/server/prefixed:
     dependencies:
       '@astrojs/node':
         specifier: ^11.1.8
-        version: 11.1.8(astro@7.4.0(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1))
+        version: 11.1.8(astro@7.4.2(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1))
       '@mannisto/astro-i18n':
         specifier: workspace:*
         version: link:../../../../..
       astro:
-        specifier: ^7.4.0
-        version: 7.4.0(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
+        specifier: ^7.4.2
+        version: 7.4.2(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
 
   tests/e2e/fixtures/server/unprefixed:
     dependencies:
       '@astrojs/node':
         specifier: ^11.1.8
-        version: 11.1.8(astro@7.4.0(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1))
+        version: 11.1.8(astro@7.4.2(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1))
       '@mannisto/astro-i18n':
         specifier: workspace:*
         version: link:../../../../..
       astro:
-        specifier: ^7.4.0
-        version: 7.4.0(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
+        specifier: ^7.4.2
+        version: 7.4.2(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
 
   tests/e2e/fixtures/static/prefixed:
     dependencies:
@@ -117,8 +117,8 @@ importers:
         specifier: workspace:*
         version: link:../../../../..
       astro:
-        specifier: ^7.4.0
-        version: 7.4.0(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
+        specifier: ^7.4.2
+        version: 7.4.2(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
 
   tests/e2e/fixtures/static/unprefixed:
     dependencies:
@@ -126,8 +126,8 @@ importers:
         specifier: workspace:*
         version: link:../../../../..
       astro:
-        specifier: ^7.4.0
-        version: 7.4.0(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
+        specifier: ^7.4.2
+        version: 7.4.2(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
 
   tests/e2e/fixtures/validation/custom-index:
     dependencies:
@@ -135,8 +135,8 @@ importers:
         specifier: workspace:*
         version: link:../../../../..
       astro:
-        specifier: ^7.4.0
-        version: 7.4.0(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
+        specifier: ^7.4.2
+        version: 7.4.2(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
 
   tests/e2e/fixtures/validation/duplicate-locale:
     dependencies:
@@ -144,8 +144,8 @@ importers:
         specifier: workspace:*
         version: link:../../../../..
       astro:
-        specifier: ^7.4.0
-        version: 7.4.0(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
+        specifier: ^7.4.2
+        version: 7.4.2(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
 
   tests/e2e/fixtures/validation/index-conflict:
     dependencies:
@@ -153,8 +153,8 @@ importers:
         specifier: workspace:*
         version: link:../../../../..
       astro:
-        specifier: ^7.4.0
-        version: 7.4.0(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
+        specifier: ^7.4.2
+        version: 7.4.2(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
 
   tests/e2e/fixtures/validation/invalid-json:
     dependencies:
@@ -162,8 +162,8 @@ importers:
         specifier: workspace:*
         version: link:../../../../..
       astro:
-        specifier: ^7.4.0
-        version: 7.4.0(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
+        specifier: ^7.4.2
+        version: 7.4.2(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
 
   tests/e2e/fixtures/validation/invalid-locale-code:
     dependencies:
@@ -171,8 +171,8 @@ importers:
         specifier: workspace:*
         version: link:../../../../..
       astro:
-        specifier: ^7.4.0
-        version: 7.4.0(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
+        specifier: ^7.4.2
+        version: 7.4.2(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
 
   tests/e2e/fixtures/validation/missing-key:
     dependencies:
@@ -180,8 +180,8 @@ importers:
         specifier: workspace:*
         version: link:../../../../..
       astro:
-        specifier: ^7.4.0
-        version: 7.4.0(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
+        specifier: ^7.4.2
+        version: 7.4.2(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
 
   tests/e2e/fixtures/validation/missing-translations:
     dependencies:
@@ -189,8 +189,8 @@ importers:
         specifier: workspace:*
         version: link:../../../../..
       astro:
-        specifier: ^7.4.0
-        version: 7.4.0(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
+        specifier: ^7.4.2
+        version: 7.4.2(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
 
   tests/e2e/fixtures/validation/move-conflict:
     dependencies:
@@ -198,8 +198,8 @@ importers:
         specifier: workspace:*
         version: link:../../../../..
       astro:
-        specifier: ^7.4.0
-        version: 7.4.0(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
+        specifier: ^7.4.2
+        version: 7.4.2(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
 
   tests/e2e/fixtures/validation/removed-ignore:
     dependencies:
@@ -207,8 +207,8 @@ importers:
         specifier: workspace:*
         version: link:../../../../..
       astro:
-        specifier: ^7.4.0
-        version: 7.4.0(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
+        specifier: ^7.4.2
+        version: 7.4.2(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
 
 packages:
 
@@ -286,21 +286,21 @@ packages:
   '@astrojs/internal-helpers@0.13.0':
     resolution: {integrity: sha512-20jxQqnSmpskcGyad7N5l6Xf1gz0UCa6lNde44bEBdaXGpncEYfAZJ142r2ZgzBaG4dUyzGmhqZWv1INU2eiHQ==}
 
-  '@astrojs/markdown-satteri@0.4.4':
-    resolution: {integrity: sha512-Byhe9CAiGFJrhMACKpgN/FPf4lcwapqwFQAB7E1sPELTEJINfBIpgnEYOBTXzr//fvSSNhfp/X3AqN4mUV9p+A==}
+  '@astrojs/markdown-satteri@0.4.5':
+    resolution: {integrity: sha512-0IeGdoFbv0f+442KJhYS44Wg8F3MuHmRsxIEYuFyqkjRubc6dPBFZ7azor5t4AeXLQoT5A5h9HyViKpd70Dl9w==}
 
   '@astrojs/node@11.1.8':
     resolution: {integrity: sha512-aXrrx5dwCI8XUH5MO4FVKW1y0bEKueUYsSrFo0wlwlL2fBBP7j3Pl/5zOkJ755D1UsQMQ8Laj4kXeXmAlKceow==}
     peerDependencies:
       astro: ^7.2.1
 
-  '@astrojs/prism@4.1.0':
-    resolution: {integrity: sha512-zvRaL3MKTAXWfVQrHAlYtocRZWXBM6ruF3Bl7Lc7QgFHLRTfwMKo33KczlkvkXDY+qcytKhAWOT9dwUUYLUxAw==}
-    engines: {node: '>=22.22.0'}
+  '@astrojs/prism@4.1.1':
+    resolution: {integrity: sha512-sXlAXJX6t4QfuLg+CuCDzpg7NoxWcyb4paFprgtFppLeisCBmh935h+tJ5CWXfsXEoW2IDy/ihbRMtiu28Chjw==}
+    engines: {node: '>=22.23.4'}
 
-  '@astrojs/telemetry@3.4.0':
-    resolution: {integrity: sha512-Qt2T6RGtYacyV8OZU3IcyFbsp69s6qIcnWvQvn7/p9MKebPCpEswP5Ji4RhifG3DfeBX7e07Pjj5smkd+Tfp7Q==}
-    engines: {node: '>=22.22.0'}
+  '@astrojs/telemetry@3.4.1':
+    resolution: {integrity: sha512-SMkvMsGOpM0FMAoT5pzhgI3LZC0JSPWf7Evwop+fZ3N6UkusPM7lI+sOJjMNI5OJrVoiei1/AGo1cY7sikTc5A==}
+    engines: {node: '>=22.23.4'}
 
   '@babel/helper-string-parser@7.29.7':
     resolution: {integrity: sha512-Pb5ijPrZ89GDH8223L4UP8i6QApWxs04RbPQJTeWDV0/keR2E36MeKnyr6LYmUUvqRRI+Iv87SuF1W6ErINzYw==}
@@ -800,6 +800,13 @@ packages:
       '@emnapi/core': ^1.7.1 || ^2.0.0-alpha.4
       '@emnapi/runtime': ^1.7.1 || ^2.0.0-alpha.4
 
+  '@napi-rs/wasm-runtime@1.2.6':
+    resolution: {integrity: sha512-mRyDmEw9/fCDXCGfL1sbgIw/GUK0PVxRW4YwgPN61F3LQ+fSyoBFarJVzgGyhF6kRzEQZ0FejDqm4WLXSeqQmw==}
+    engines: {node: ^20.19.0 || ^22.13.0 || >=23.5.0}
+    peerDependencies:
+      '@emnapi/core': ^1.7.1 || 2.0.0-beta.2
+      '@emnapi/runtime': ^1.7.1 || 2.0.0-beta.2
+
   '@oslojs/encoding@1.1.0':
     resolution: {integrity: sha512-70wQhgYmndg4GCPxPPxPGevRKqTIJ2Nh4OkiMWmDAVYsTQ+Ta7Sq+rPevXyXGdzr30/qZBnyOalCszoMxlyldQ==}
 
@@ -1118,11 +1125,11 @@ packages:
   '@ungap/structured-clone@1.4.0':
     resolution: {integrity: sha512-1mEZtMKPM09vDmQt5y7YvmN2+DFTP7Tg0EWXdic8/C6VRnpb33e4ghisCIE3WZjsE2N8mf+QV1Zqh7ZFYLWInQ==}
 
-  '@vitest/expect@4.1.11':
-    resolution: {integrity: sha512-VX2x5vNJXET47KAFzwERI+KRMtTTCSWTfSMKsW7JsUsXV4psq++e3DvZpuTDOpHcxytiDs6p2nhVb2tVDiiUYw==}
+  '@vitest/expect@4.1.12':
+    resolution: {integrity: sha512-vFlTt+YEu9WBpNjdGayNmlMVzrWPi1+sv853/7t2FU7hpO5gAFBKHzQmkCq5Xjpr+evegF2994LQT3hF3mRlqQ==}
 
-  '@vitest/mocker@4.1.11':
-    resolution: {integrity: sha512-2XJVD55d1o5AZous5CCGKS74g/riOj9odEt2bQpCVZeblHyHdnMeFl4jl0XjU21stf4mbjUkew2eXQZt65g5CQ==}
+  '@vitest/mocker@4.1.12':
+    resolution: {integrity: sha512-fKShNpKZzupWZuY0z7egydvL0sqW4INEZBEExMBMAa6izlENEVHwoXgdaTCaBZ5fwlr4xf2o1wXC83n9RpO+NA==}
     peerDependencies:
       msw: ^2.4.9
       vite: ^6.0.0 || ^7.0.0 || ^8.0.0
@@ -1132,20 +1139,20 @@ packages:
       vite:
         optional: true
 
-  '@vitest/pretty-format@4.1.11':
-    resolution: {integrity: sha512-yiZzPbGTS9Sr/JpFl8zHrcIkAofNbFV6k21vIgQN/cY/oxZeXhJv5sc/MBJ5jFKWmWs+oJHw0UXLZjmf931+Vw==}
+  '@vitest/pretty-format@4.1.12':
+    resolution: {integrity: sha512-XW9O8+Mxx4VpCtkYdMJLZQQwsVryP9wk7cPKDxtXFfwSak6yRh5+2fep/Y0XF/ElBvJHq8bcYdi6aeuai0opZA==}
 
-  '@vitest/runner@4.1.11':
-    resolution: {integrity: sha512-LztvUgdwMNJMIkj3hQnnxiC2Xy1zNxq928W/xhjCLaNCzqTZOudjwbQf6v9IntZGPw132i2Lq2rgTRZHD3JHNw==}
+  '@vitest/runner@4.1.12':
+    resolution: {integrity: sha512-NKlVKCr5QnCe8jijdMnmkpHHU+WTqiLFR6G0pHji9uRjXK9xJl1k1nTw6F3pOOj2PDcsDt2GKQMI7wIsaT491w==}
 
-  '@vitest/snapshot@4.1.11':
-    resolution: {integrity: sha512-pN7ikn1ON7h8ee4gIAp4AzyK+zBtJPzVbqOgu5LCEh4VaJVbPQcgYQYJIMGQPXVeJJq1fnfazis7a5pFNPahog==}
+  '@vitest/snapshot@4.1.12':
+    resolution: {integrity: sha512-ko1y1Qgb/slzQ9mr+b89Cuqud8WG1TKtsPD8r7ZUBdvVOGt85Af2HwCqHujrhwJq95hs/9RM7fcAPg57o1vlzw==}
 
-  '@vitest/spy@4.1.11':
-    resolution: {integrity: sha512-apNa/prQy2qCeywhnixOHPRCgGNhvg7T4Dapfl1GahLp/R+uhBm5cPyFoNVyqsNd2h1nJxL6BqqdIjiABL60YA==}
+  '@vitest/spy@4.1.12':
+    resolution: {integrity: sha512-RGq9x4JNGNTZHEJxvN0oSiJjeSCExm0n2gZKKJZHY9cX5AVA6M7VJILBT3ZJ/tJ/0J9uWT7fETV9/btoi//vSg==}
 
-  '@vitest/utils@4.1.11':
-    resolution: {integrity: sha512-zTCVGpyFsGWBhllOyKlTw/vnr6D9qxsfSDyfbyZmTyjHw5N/VuvzHpHoQjm2ZJzn4RJgx5w4r7V0er69CmLgPQ==}
+  '@vitest/utils@4.1.12':
+    resolution: {integrity: sha512-Q3awXrwOfEV+qc3WmO5ONyE0yO7Q1gQ9/oyHxGLZ/pl7N3NO/ZztqQwKLuwMkV+CA1JYSIeO3gkHnRDIo4AVaA==}
 
   acorn@8.18.0:
     resolution: {integrity: sha512-lGq+9yr1/GuAWaVYIHRjvvySG5/4VfKIvC8EWxStPdcDh/Ka7FG3twP6v4d5BkravUilhIAsG4Qj83t02LWUPQ==}
@@ -1171,9 +1178,9 @@ packages:
     resolution: {integrity: sha512-Izi8RQcffqCeNVgFigKli1ssklIbpHnCYc6AknXGYoB6grJqyeby7jv12JUQgmTAnIDnbck1uxksT4dzN3PWBA==}
     engines: {node: '>=12'}
 
-  astro@7.4.0:
-    resolution: {integrity: sha512-6ThZU2bp7asGSceVcnh3r23dE88HpYN5vxtnCWYYrjr8lpQjx4eDW6/W8WgNlcc+T/b8zHmQ/EcS4DpQG4ZoOg==}
-    engines: {node: '>=22.22.0', npm: '>=9.6.5', pnpm: '>=7.1.0'}
+  astro@7.4.2:
+    resolution: {integrity: sha512-FAH4cdDlFaVnQGjazLTEIC5vJqGlo5XANc1wIbzQHIqAjJTll/RWTUs+SPNW1JdezG4YGxMZllaE5A41T2kzhA==}
+    engines: {node: '>=22.23.4', npm: '>=9.6.5', pnpm: '>=7.1.0'}
     hasBin: true
     peerDependencies:
       '@astrojs/markdown-remark': ^7.3.0
@@ -1204,8 +1211,8 @@ packages:
   ccount@2.0.1:
     resolution: {integrity: sha512-eyrF0jiFpY+3drT6383f1qhkbGsLSifNAjA61IUjZjmLCWjItY6LB9ft9YhoDgwfmclB2zhu51Lc7+95b8NRAg==}
 
-  chai@6.2.2:
-    resolution: {integrity: sha512-NUPRluOfOiTKBKvWPtSD4PhFvWCqOi0BGStNWs57X9js7XGTprSmFoz5F0tWhR4WPjNeR9jXqdC7/UpSJTnlRg==}
+  chai@6.3.0:
+    resolution: {integrity: sha512-XWAtwJ6OHO+tj0EKCs0Y2UamnyOxseZWltU4x2U2wh8g4AigdjwvtUjvLP2tqkA/avxHEtzxNaqGq/YGNwckKg==}
     engines: {node: '>=18'}
 
   character-entities-html4@2.1.0:
@@ -2119,20 +2126,20 @@ packages:
       vite:
         optional: true
 
-  vitest@4.1.11:
-    resolution: {integrity: sha512-fhACrNXUidIbGSBr5FlbuBkO7VWC1ZyLl0DO4CU2DrQoAPxX84Ysxs+HeGQpii5lZWV1Q4gBZTTu49mF+A6Edw==}
+  vitest@4.1.12:
+    resolution: {integrity: sha512-5eWdz2yb3ajxWF3C8C4TjkXl7FGm3n2E/VlazALrQHzK7nYMSGFnCZto0bbPNl77AwkOZVLk0YnBAejUu0NiWA==}
     engines: {node: ^20.0.0 || ^22.0.0 || >=24.0.0}
     hasBin: true
     peerDependencies:
       '@edge-runtime/vm': '*'
       '@opentelemetry/api': ^1.9.0
       '@types/node': ^20.0.0 || ^22.0.0 || >=24.0.0
-      '@vitest/browser-playwright': 4.1.11
-      '@vitest/browser-preview': 4.1.11
-      '@vitest/browser-webdriverio': 4.1.11
-      '@vitest/coverage-istanbul': 4.1.11
-      '@vitest/coverage-v8': 4.1.11
-      '@vitest/ui': 4.1.11
+      '@vitest/browser-playwright': 4.1.12
+      '@vitest/browser-preview': 4.1.12
+      '@vitest/browser-webdriverio': ^4.1.11
+      '@vitest/coverage-istanbul': 4.1.12
+      '@vitest/coverage-v8': 4.1.12
+      '@vitest/ui': 4.1.12
       happy-dom: '*'
       jsdom: '*'
       vite: ^6.0.0 || ^7.0.0 || ^8.0.0
@@ -2251,27 +2258,27 @@ snapshots:
       unified: 11.0.5
       yaml: 2.9.1
 
-  '@astrojs/markdown-satteri@0.4.4':
+  '@astrojs/markdown-satteri@0.4.5':
     dependencies:
       '@astrojs/internal-helpers': 0.13.0
-      '@astrojs/prism': 4.1.0
+      '@astrojs/prism': 4.1.1
       github-slugger: 2.0.0
       satteri: 0.10.5
 
-  '@astrojs/node@11.1.8(astro@7.4.0(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1))':
+  '@astrojs/node@11.1.8(astro@7.4.2(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1))':
     dependencies:
       '@astrojs/internal-helpers': 0.13.0
-      astro: 7.4.0(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
+      astro: 7.4.2(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1)
       send: 1.2.1
       server-destroy: 1.0.1
     transitivePeerDependencies:
       - supports-color
 
-  '@astrojs/prism@4.1.0':
+  '@astrojs/prism@4.1.1':
     dependencies:
       prismjs: 1.30.0
 
-  '@astrojs/telemetry@3.4.0':
+  '@astrojs/telemetry@3.4.1':
     dependencies:
       ci-info: 4.4.0
       dset: 3.1.4
@@ -2348,7 +2355,7 @@ snapshots:
     dependencies:
       '@emnapi/core': 1.11.1
       '@emnapi/runtime': 1.11.1
-      '@napi-rs/wasm-runtime': 1.2.5(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)
+      '@napi-rs/wasm-runtime': 1.2.6(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)
     optional: true
 
   '@bruits/satteri-win32-arm64-msvc@0.10.5':
@@ -2607,17 +2614,17 @@ snapshots:
   '@napi-rs/lzma-linux-x64-gnu@1.5.1':
     optional: true
 
-  '@napi-rs/wasm-runtime@1.2.5(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)':
-    dependencies:
-      '@emnapi/core': 1.11.1
-      '@emnapi/runtime': 1.11.1
-      '@tybys/wasm-util': 0.10.4
-    optional: true
-
   '@napi-rs/wasm-runtime@1.2.5(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)':
     dependencies:
       '@emnapi/core': 1.11.3
       '@emnapi/runtime': 1.11.3
+      '@tybys/wasm-util': 0.10.4
+    optional: true
+
+  '@napi-rs/wasm-runtime@1.2.6(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)':
+    dependencies:
+      '@emnapi/core': 1.11.1
+      '@emnapi/runtime': 1.11.1
       '@tybys/wasm-util': 0.10.4
     optional: true
 
@@ -2836,44 +2843,44 @@ snapshots:
 
   '@ungap/structured-clone@1.4.0': {}
 
-  '@vitest/expect@4.1.11':
+  '@vitest/expect@4.1.12':
     dependencies:
       '@standard-schema/spec': 1.1.0
       '@types/chai': 5.2.3
-      '@vitest/spy': 4.1.11
-      '@vitest/utils': 4.1.11
-      chai: 6.2.2
+      '@vitest/spy': 4.1.12
+      '@vitest/utils': 4.1.12
+      chai: 6.3.0
       tinyrainbow: 3.1.1
 
-  '@vitest/mocker@4.1.11(vite@8.3.4(@types/node@22.20.4)(esbuild@0.27.7)(yaml@2.9.1))':
+  '@vitest/mocker@4.1.12(vite@8.3.4(@types/node@22.20.4)(esbuild@0.27.7)(yaml@2.9.1))':
     dependencies:
-      '@vitest/spy': 4.1.11
+      '@vitest/spy': 4.1.12
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
       vite: 8.3.4(@types/node@22.20.4)(esbuild@0.27.7)(yaml@2.9.1)
 
-  '@vitest/pretty-format@4.1.11':
+  '@vitest/pretty-format@4.1.12':
     dependencies:
       tinyrainbow: 3.1.1
 
-  '@vitest/runner@4.1.11':
+  '@vitest/runner@4.1.12':
     dependencies:
-      '@vitest/utils': 4.1.11
+      '@vitest/utils': 4.1.12
       pathe: 2.0.3
 
-  '@vitest/snapshot@4.1.11':
+  '@vitest/snapshot@4.1.12':
     dependencies:
-      '@vitest/pretty-format': 4.1.11
-      '@vitest/utils': 4.1.11
+      '@vitest/pretty-format': 4.1.12
+      '@vitest/utils': 4.1.12
       magic-string: 0.30.21
       pathe: 2.0.3
 
-  '@vitest/spy@4.1.11': {}
+  '@vitest/spy@4.1.12': {}
 
-  '@vitest/utils@4.1.11':
+  '@vitest/utils@4.1.12':
     dependencies:
-      '@vitest/pretty-format': 4.1.11
+      '@vitest/pretty-format': 4.1.12
       convert-source-map: 2.0.0
       tinyrainbow: 3.1.1
 
@@ -2894,12 +2901,12 @@ snapshots:
 
   assertion-error@2.0.1: {}
 
-  astro@7.4.0(@types/node@22.20.4)(esbuild@0.27.7)(yaml@2.9.1):
+  astro@7.4.2(@types/node@22.20.4)(esbuild@0.27.7)(yaml@2.9.1):
     dependencies:
       '@astrojs/compiler-rs': 0.5.2
       '@astrojs/internal-helpers': 0.13.0
-      '@astrojs/markdown-satteri': 0.4.4
-      '@astrojs/telemetry': 3.4.0
+      '@astrojs/markdown-satteri': 0.4.5
+      '@astrojs/telemetry': 3.4.1
       '@capsizecss/unpack': 4.0.1
       '@clack/prompts': 1.8.1
       '@oslojs/encoding': 1.1.0
@@ -2983,12 +2990,12 @@ snapshots:
       - uploadthing
       - yaml
 
-  astro@7.4.0(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1):
+  astro@7.4.2(@types/node@25.5.0)(esbuild@0.27.7)(yaml@2.9.1):
     dependencies:
       '@astrojs/compiler-rs': 0.5.2
       '@astrojs/internal-helpers': 0.13.0
-      '@astrojs/markdown-satteri': 0.4.4
-      '@astrojs/telemetry': 3.4.0
+      '@astrojs/markdown-satteri': 0.4.5
+      '@astrojs/telemetry': 3.4.1
       '@capsizecss/unpack': 4.0.1
       '@clack/prompts': 1.8.1
       '@oslojs/encoding': 1.1.0
@@ -3087,7 +3094,7 @@ snapshots:
 
   ccount@2.0.1: {}
 
-  chai@6.2.2: {}
+  chai@6.3.0: {}
 
   character-entities-html4@2.1.0: {}
 
@@ -3993,15 +4000,15 @@ snapshots:
     optionalDependencies:
       vite: 8.3.4(@types/node@22.20.4)(esbuild@0.27.7)(yaml@2.9.1)
 
-  vitest@4.1.11(@types/node@22.20.4)(vite@8.3.4(@types/node@22.20.4)(esbuild@0.27.7)(yaml@2.9.1)):
+  vitest@4.1.12(@types/node@22.20.4)(vite@8.3.4(@types/node@22.20.4)(esbuild@0.27.7)(yaml@2.9.1)):
     dependencies:
-      '@vitest/expect': 4.1.11
-      '@vitest/mocker': 4.1.11(vite@8.3.4(@types/node@22.20.4)(esbuild@0.27.7)(yaml@2.9.1))
-      '@vitest/pretty-format': 4.1.11
-      '@vitest/runner': 4.1.11
-      '@vitest/snapshot': 4.1.11
-      '@vitest/spy': 4.1.11
-      '@vitest/utils': 4.1.11
+      '@vitest/expect': 4.1.12
+      '@vitest/mocker': 4.1.12(vite@8.3.4(@types/node@22.20.4)(esbuild@0.27.7)(yaml@2.9.1))
+      '@vitest/pretty-format': 4.1.12
+      '@vitest/runner': 4.1.12
+      '@vitest/snapshot': 4.1.12
+      '@vitest/spy': 4.1.12
+      '@vitest/utils': 4.1.12
       es-module-lexer: 2.3.2
       expect-type: 1.4.0
       magic-string: 0.30.21
