@@ -77,13 +77,13 @@
     "astro": "^6.4.6 || ^7.0.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.14",
-    "@playwright/test": "^1.63.0",
-    "@types/node": "^22.20.4",
-    "astro": "^7.4.0",
+    "@biomejs/biome": "^2.6.3",
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^22.20.5",
+    "astro": "^7.4.2",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.12"
   },
   "packageManager": "pnpm@10.32.1+sha512.a706938f0e89ac1456b6563eab4edf1d1faf3368d1191fc5c59790e96dc918e4456ab2e67d613de1043d2e8c81f87303e6b40d4ffeca9df15ef1ad567348f2be"
 }
