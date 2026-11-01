@@ -14,5 +14,6 @@ const { code, t } = Locale.use(Astro)
   <body>
     <h1 data-testid="title">{t("nav.about")}</h1>
     <p data-testid="copyright">{t("footer.copyright")}</p>
+    <p data-testid="query">{Astro.url.search}</p>
   </body>
 </html>

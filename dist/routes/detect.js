@@ -9,7 +9,7 @@ import {
 // src/routes/detect.ts
 import { config } from "virtual:astro-i18n/config";
 var prerender = false;
-var GET = ({ cookies, redirect }) => {
+var GET = ({ cookies, redirect, url }) => {
   const supported = config.locales.map((l) => l.code);
   const stored = cookies.get("locale")?.value;
   const locale = stored && supported.includes(stored) ? stored : config.defaultLocale;
@@ -18,7 +18,7 @@ var GET = ({ cookies, redirect }) => {
     maxAge: COOKIE_AGE,
     sameSite: "lax"
   });
-  return redirect(Locale.url(locale), 302);
+  return redirect(Locale.url(locale) + url.search, 302);
 };
 export {
   GET,

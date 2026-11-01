@@ -57,6 +57,12 @@ test.describe("root detection", () => {
     await expect(page).toHaveURL("/en/")
   })
 
+  test("keeps the query when it redirects /", async ({ page }) => {
+    await page.context().clearCookies()
+    await page.goto("/?id=12")
+    await expect(page).toHaveURL("/en/?id=12")
+  })
+
   test("persists locale preference on return visit to /", async ({ page }) => {
     await page.context().clearCookies()
     await page.goto("/fi/")
@@ -70,6 +76,13 @@ test.describe("unprefixed redirect", () => {
     await page.context().clearCookies()
     await page.goto("/about")
     await expect(page).toHaveURL("/en/about")
+    await expect(page.getByTestId("title")).toHaveText("About")
+  })
+
+  test("keeps the query when it redirects an unprefixed path", async ({ page }) => {
+    await page.context().clearCookies()
+    await page.goto("/about?id=12")
+    await expect(page).toHaveURL("/en/about?id=12")
     await expect(page.getByTestId("title")).toHaveText("About")
   })
 

@@ -45,21 +45,21 @@ function render(context: APIContext, next: MiddlewareNext) {
 
 /**
  * prefixDefaultLocale: true. Sends a path without a locale prefix to the
- * stored cookie locale or to the default locale: /about becomes /en/about.
+ * stored cookie locale or to the default locale: /about?id=12 becomes /en/about?id=12.
  */
 function redirect(context: APIContext, path: string) {
   const stored = context.cookies.get("locale")?.value
   const locale = stored && codes.includes(stored) ? stored : config.defaultLocale
-  return context.redirect(Paths.add(`/${locale}${path}`), 302)
+  return context.redirect(Paths.add(`/${locale}${path}`) + context.url.search, 302)
 }
 
 /**
  * prefixDefaultLocale: false. Renders the default locale page for a path
- * without a locale prefix: /about shows /en/about.
+ * without a locale prefix: /about?id=12 shows /en/about?id=12.
  */
 async function rewrite(context: APIContext, path: string) {
   context.locals.i18nRewrite = true
-  const target = Paths.add(`/${config.defaultLocale}${path}`)
+  const target = Paths.add(`/${config.defaultLocale}${path}`) + context.url.search
   const response = await context.rewrite(target).catch(() => null)
   if (!response || response.status === 404) return notFound(context)
   return response

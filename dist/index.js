@@ -107,7 +107,7 @@ var Output = {
       const defaultLocale = ${JSON.stringify(config.defaultLocale)};
       const stored = document.cookie.split("; ").find(r => r.startsWith("locale="))?.split("=")[1];
       const locale = (stored && supported.includes(stored)) ? stored : defaultLocale;
-      window.location.replace(base + "/" + locale + "/");
+      window.location.replace(base + "/" + locale + "/" + window.location.search + window.location.hash);
     </script>
   </head>
   <body></body>
