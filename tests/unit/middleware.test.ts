@@ -123,13 +123,21 @@ describe("prefixDefaultLocale: false", () => {
     expect(body).toBe("/404")
   })
 
-  it("renders the 404 page when the rewritten page does not exist", async () => {
+  it("renders the 404 page when the rewritten page answers with an empty 404", async () => {
     const run = await load(false)
     const rewrite = (path: string) =>
-      Promise.resolve(new Response(path, { status: path === "/404" ? 200 : 404 }))
+      Promise.resolve(path === "/404" ? new Response(path) : new Response(null, { status: 404 }))
     const { response, body } = await run("/banana", { rewrite })
     expect(response.status).toBe(404)
     expect(body).toBe("/404")
+  })
+
+  it("keeps a 404 with a body, so the 404 page does not render two times", async () => {
+    const run = await load(false)
+    const rewrite = (path: string) => Promise.resolve(new Response(path, { status: 404 }))
+    const { response, body } = await run("/restricted", { rewrite })
+    expect(response.status).toBe(404)
+    expect(body).toBe("/en/restricted")
   })
 
   it("renders the 404 page when the rewrite throws", async () => {

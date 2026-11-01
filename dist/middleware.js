@@ -36,8 +36,11 @@ async function rewrite(context, path) {
   context.locals.i18nRewrite = true;
   const target = Paths.add(`/${config.defaultLocale}${path}`) + context.url.search;
   const response = await context.rewrite(target).catch(() => null);
-  if (!response || response.status === 404) return notFound(context);
+  if (!response || isEmptyNotFound(response)) return notFound(context);
   return response;
+}
+function isEmptyNotFound(response) {
+  return response.status === 404 && response.body === null;
 }
 async function notFound(context) {
   context.locals.i18nRewrite = true;
