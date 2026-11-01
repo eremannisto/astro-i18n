@@ -14,7 +14,7 @@ import type { LocaleConfig } from "../types"
  */
 export const prerender = false
 
-export const GET: APIRoute = ({ cookies, redirect }) => {
+export const GET: APIRoute = ({ cookies, redirect, url }) => {
   const supported = config.locales.map((l: LocaleConfig) => l.code)
   const stored = cookies.get("locale")?.value
   const locale = stored && supported.includes(stored) ? stored : config.defaultLocale
@@ -25,5 +25,5 @@ export const GET: APIRoute = ({ cookies, redirect }) => {
     sameSite: "lax",
   })
 
-  return redirect(Locale.url(locale), 302)
+  return redirect(Locale.url(locale) + url.search, 302)
 }

@@ -17,6 +17,15 @@ test.describe("default locale pages", () => {
   })
 })
 
+test.describe("query", () => {
+  test("keeps the query when it rewrites an unprefixed path", async ({ page }, testInfo) => {
+    test.skip(!testInfo.project.name.startsWith("server/"), "The page is prerendered")
+    await page.goto("/about?id=12")
+    await expect(page).toHaveURL("/about?id=12")
+    await expect(page.getByTestId("query")).toHaveText("?id=12")
+  })
+})
+
 test.describe("other locale pages", () => {
   test("renders the Finnish home page at /fi/", async ({ page }) => {
     const response = await page.goto("/fi/")
