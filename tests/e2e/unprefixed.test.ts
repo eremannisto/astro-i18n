@@ -26,6 +26,21 @@ test.describe("query", () => {
   })
 })
 
+test.describe("nested pages", () => {
+  test("renders a nested English page without a prefix", async ({ page }) => {
+    const response = await page.goto("/info/contact")
+    expect(response?.status()).toBe(200)
+    await expect(page.getByTestId("contact")).toHaveText("Contact")
+    await expect(page).toHaveURL("/info/contact")
+  })
+
+  test("renders a nested Finnish page with a prefix", async ({ page }) => {
+    const response = await page.goto("/fi/info/contact")
+    expect(response?.status()).toBe(200)
+    await expect(page.getByTestId("contact")).toHaveText("Contact")
+  })
+})
+
 test.describe("other locale pages", () => {
   test("renders the Finnish home page at /fi/", async ({ page }) => {
     const response = await page.goto("/fi/")
