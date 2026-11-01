@@ -275,6 +275,7 @@ import { Locale } from "@mannisto/astro-i18n/runtime"
 - **The root page with a prefix.** With `prefixDefaultLocale: true`, `/` sends the visitor to the language that they used last, or to the default language. To show your own page at `/`, for example a language selector, add `src/pages/index.astro`.
 - **Links.** Use `Locale.url()` to make links. With `prefixDefaultLocale: false`, `Astro.url` still contains the prefix of the default locale.
 - **Trailing slash.** `Locale.url()` and the hreflang links follow the `trailingSlash` option of Astro.
+- **An on-demand 404 page.** With an adapter and `prefixDefaultLocale: false`, keep `src/pages/404.astro` prerendered. Astro does not allow a rewrite from an on-demand page to a static page. So in `astro dev`, an on-demand 404 page shows the 404 page for some pages of the default locale, for example `/info/contact`. The build is not affected.
 - **Middleware order.** The middleware of the integration runs before your own `src/middleware.ts`.
 - **Dev and build.** Dev and the build give the same URLs, in static, hybrid and server mode.
 
