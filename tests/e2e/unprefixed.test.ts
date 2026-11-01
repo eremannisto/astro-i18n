@@ -50,6 +50,20 @@ test.describe("root pages", () => {
 })
 
 test.describe("404 handling", () => {
+  test("keeps the 404 page that a page shows itself", async ({ page }, testInfo) => {
+    test.skip(!testInfo.project.name.startsWith("server/"), "Only the server fixture has the page")
+    const response = await page.goto("/restricted")
+    expect(response?.status()).toBe(404)
+    await expect(page.getByTestId("not-found")).toHaveText("404")
+  })
+
+  test("renders the 404 page for a page with an empty 404", async ({ page }, testInfo) => {
+    test.skip(!testInfo.project.name.startsWith("server/"), "Only the server fixture has the page")
+    const response = await page.goto("/missing")
+    expect(response?.status()).toBe(404)
+    await expect(page.getByTestId("not-found")).toHaveText("404")
+  })
+
   for (const path of ["/en/", "/en/about", "/de/about", "/banana", "/fi/banana"]) {
     test(`renders the 404 page for ${path}`, async ({ page }) => {
       const response = await page.goto(path)

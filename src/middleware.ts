@@ -61,8 +61,17 @@ async function rewrite(context: APIContext, path: string) {
   context.locals.i18nRewrite = true
   const target = Paths.add(`/${config.defaultLocale}${path}`) + context.url.search
   const response = await context.rewrite(target).catch(() => null)
-  if (!response || response.status === 404) return notFound(context)
+  if (!response || isEmptyNotFound(response)) return notFound(context)
   return response
+}
+
+/**
+ * Returns true for a 404 response without a body. Inside a rewrite, Astro 6 does not show
+ * the 404 page for it. A 404 with a body stays as it is, for example a page that already
+ * shows the 404 page: a second rewrite to /404 is a loop, and the page is empty.
+ */
+function isEmptyNotFound(response: Response): boolean {
+  return response.status === 404 && response.body === null
 }
 
 /**
