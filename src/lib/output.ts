@@ -50,6 +50,7 @@ export const Output = {
    */
   writeDetectPage(dir: URL, config: ResolvedI18nConfig): void {
     const supported = config.locales.map((l: LocaleConfig) => l.code)
+    const slash = config.trailingSlash === "never" ? "" : "/"
 
     const html = `<!DOCTYPE html>
 <html>
@@ -59,9 +60,10 @@ export const Output = {
       const supported = ${JSON.stringify(supported)};
       const base = ${JSON.stringify(config.base)};
       const defaultLocale = ${JSON.stringify(config.defaultLocale)};
+      const slash = ${JSON.stringify(slash)};
       const stored = document.cookie.split("; ").find(r => r.startsWith("locale="))?.split("=")[1];
       const locale = (stored && supported.includes(stored)) ? stored : defaultLocale;
-      window.location.replace(base + "/" + locale + "/" + window.location.search + window.location.hash);
+      window.location.replace(base + "/" + locale + slash + window.location.search + window.location.hash);
     </script>
   </head>
   <body></body>

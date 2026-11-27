@@ -50,7 +50,7 @@ function render(context: APIContext, next: MiddlewareNext) {
 function redirect(context: APIContext, path: string) {
   const stored = context.cookies.get("locale")?.value
   const locale = stored && codes.includes(stored) ? stored : config.defaultLocale
-  return context.redirect(Paths.add(`/${locale}${path}`) + context.url.search, 302)
+  return context.redirect(Paths.slash(Paths.add(`/${locale}${path}`)) + context.url.search, 302)
 }
 
 /**
@@ -59,7 +59,7 @@ function redirect(context: APIContext, path: string) {
  */
 async function rewrite(context: APIContext, path: string) {
   context.locals.i18nRewrite = true
-  const target = Paths.add(`/${config.defaultLocale}${path}`) + context.url.search
+  const target = Paths.slash(Paths.add(`/${config.defaultLocale}${path}`)) + context.url.search
   const response = await context.rewrite(target).catch(() => null)
   if (!response || isEmptyNotFound(response)) return notFound(context)
   return response
