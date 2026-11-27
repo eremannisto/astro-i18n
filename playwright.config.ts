@@ -11,6 +11,8 @@ const fixtures = [
   { path: "base/static-prefixed", test: "base-prefixed" },
   { path: "base/server-prefixed", test: "base-prefixed" },
   { path: "base/hybrid-unprefixed", test: "base-unprefixed" },
+  { path: "slash/server-unprefixed", test: "slash-unprefixed" },
+  { path: "slash/static-prefixed", test: "slash-prefixed" },
 ]
 
 // Each fixture runs twice: with the dev server and with a production build.

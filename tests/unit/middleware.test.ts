@@ -8,7 +8,7 @@ type Options = {
   rewrite?: (path: string) => Promise<Response>
 }
 
-async function load(prefixDefaultLocale: boolean, base = "") {
+async function load(prefixDefaultLocale: boolean, base = "", trailingSlash = "ignore") {
   vi.resetModules()
   vi.doMock("virtual:astro-i18n/config", () => ({
     config: {
@@ -19,6 +19,7 @@ async function load(prefixDefaultLocale: boolean, base = "") {
       defaultLocale: "en",
       prefixDefaultLocale,
       base,
+      trailingSlash,
       translations: undefined,
     },
     translations: {},
@@ -186,5 +187,18 @@ describe("base", () => {
     const { response, body } = await run("/docs/en/about")
     expect(response.status).toBe(404)
     expect(body).toBe("/docs/404")
+  })
+})
+
+describe("trailingSlash: never", () => {
+  it("rewrites / to the home page of the default locale without the slash", async () => {
+    const run = await load(false, "", "never")
+    expect((await run("/")).body).toBe("/en")
+  })
+
+  it("redirects a path without the slash at the end", async () => {
+    const run = await load(true, "", "never")
+    const { response } = await run("/about/")
+    expect(response.headers.get("location")).toBe("/en/about")
   })
 })
