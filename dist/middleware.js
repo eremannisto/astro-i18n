@@ -30,11 +30,11 @@ function render(context, next) {
 function redirect(context, path) {
   const stored = context.cookies.get("locale")?.value;
   const locale = stored && codes.includes(stored) ? stored : config.defaultLocale;
-  return context.redirect(Paths.add(`/${locale}${path}`) + context.url.search, 302);
+  return context.redirect(Paths.slash(Paths.add(`/${locale}${path}`)) + context.url.search, 302);
 }
 async function rewrite(context, path) {
   context.locals.i18nRewrite = true;
-  const target = Paths.add(`/${config.defaultLocale}${path}`) + context.url.search;
+  const target = Paths.slash(Paths.add(`/${config.defaultLocale}${path}`)) + context.url.search;
   const response = await context.rewrite(target).catch(() => null);
   if (!response || isEmptyNotFound(response)) return notFound(context);
   return response;
